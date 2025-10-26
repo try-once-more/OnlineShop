@@ -9,11 +9,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService", "src\CartServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.Domain", "src\CatalogService.Domain\CatalogService.Domain.csproj", "{4FD4C81C-A74D-43FA-9808-4FC7787828D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.Application", "src\CatalogService.Application\CatalogService.Application.csproj", "{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartService.Tests", "tests\CartService.Tests\CartService.Tests.csproj", "{2AAA56D1-2482-4061-8395-A07214523E25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.Domain.Tests", "tests\CatalogService.Domain.Tests\CatalogService.Domain.Tests.csproj", "{7AC8A499-5F5D-43FB-8AAE-751268FD5E16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogService.Application.Tests", "tests\CatalogService.Application.Tests\CatalogService.Application.Tests.csproj", "{4317F65B-396D-4F4D-A763-E3EDF30B0C21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +53,18 @@ Global
 		{4FD4C81C-A74D-43FA-9808-4FC7787828D5}.Release|x64.Build.0 = Release|Any CPU
 		{4FD4C81C-A74D-43FA-9808-4FC7787828D5}.Release|x86.ActiveCfg = Release|Any CPU
 		{4FD4C81C-A74D-43FA-9808-4FC7787828D5}.Release|x86.Build.0 = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|x64.Build.0 = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Debug|x86.Build.0 = Debug|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|x64.ActiveCfg = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|x64.Build.0 = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|x86.ActiveCfg = Release|Any CPU
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5}.Release|x86.Build.0 = Release|Any CPU
 		{2AAA56D1-2482-4061-8395-A07214523E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2AAA56D1-2482-4061-8395-A07214523E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AAA56D1-2482-4061-8395-A07214523E25}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -73,6 +89,18 @@ Global
 		{7AC8A499-5F5D-43FB-8AAE-751268FD5E16}.Release|x64.Build.0 = Release|Any CPU
 		{7AC8A499-5F5D-43FB-8AAE-751268FD5E16}.Release|x86.ActiveCfg = Release|Any CPU
 		{7AC8A499-5F5D-43FB-8AAE-751268FD5E16}.Release|x86.Build.0 = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|x64.Build.0 = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Debug|x86.Build.0 = Debug|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|x64.ActiveCfg = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|x64.Build.0 = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|x86.ActiveCfg = Release|Any CPU
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,7 +108,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AAA02C8E-D038-4178-AF1C-C78AC11ABD5F} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{4FD4C81C-A74D-43FA-9808-4FC7787828D5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{273BCF70-27DF-4C7A-B72A-D6DF41911AD5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{2AAA56D1-2482-4061-8395-A07214523E25} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{4317F65B-396D-4F4D-A763-E3EDF30B0C21} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{7AC8A499-5F5D-43FB-8AAE-751268FD5E16} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

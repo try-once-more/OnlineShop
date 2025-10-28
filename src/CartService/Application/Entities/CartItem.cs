@@ -7,7 +7,7 @@ public class CartItem : BaseEntity<int>
     public required string Name
     {
         get;
-        init
+        set
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new CartItemNameInvalidException();
@@ -19,7 +19,7 @@ public class CartItem : BaseEntity<int>
     public required decimal Price
     {
         get;
-        init
+        set
         {
             if (value <= 0)
                 throw new CartItemPriceInvalidException();
@@ -28,34 +28,17 @@ public class CartItem : BaseEntity<int>
         }
     }
 
-    private int quantity;
-    public required int Quantity
+    public int Quantity
     {
-        get => quantity;
-        init
+        get;
+        set
         {
             if (value <= 0)
                 throw new CartItemQuantityInvalidException();
 
-            quantity = value;
+            field = value;
         }
-    }
+    } = 1;
 
     public ImageInfo? Image { get; set; }
-
-    public void IncreaseQuantity(int value)
-    {
-        if (value <= 0 || value > int.MaxValue - Quantity)
-            throw new CartItemQuantityInvalidException();
-
-        quantity += value;
-    }
-
-    public void DecreaseQuantity(int value)
-    {
-        if (value <= 0 || value > Quantity)
-            throw new CartItemQuantityInvalidException();
-
-        quantity -= value;
-    }
 }

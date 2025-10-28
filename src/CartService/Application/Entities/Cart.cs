@@ -13,34 +13,24 @@ public class Cart : BaseEntity<Guid>
     {
         ArgumentNullException.ThrowIfNull(itemToAdd);
 
-        var existingItem = items.FirstOrDefault(item => item.Equals(itemToAdd));
+        var existingItem = items.FirstOrDefault(item => item == itemToAdd);
         if (existingItem is null)
         {
             items.Add(itemToAdd);
         }
         else
         {
-            existingItem.IncreaseQuantity(itemToAdd.Quantity);
+            existingItem.Quantity += itemToAdd.Quantity;
         }
     }
 
-    public bool RemoveItem(CartItem itemToRemove)
+    public bool RemoveItem(int itemId)
     {
-        ArgumentNullException.ThrowIfNull(itemToRemove);
-
-        var existingItem = items.FirstOrDefault(item => item.Equals(itemToRemove));
+        var existingItem = items.FirstOrDefault(item => item.Id == itemId);
         if (existingItem is null)
             return false;
 
-        if (existingItem.Quantity > itemToRemove.Quantity)
-        {
-            existingItem.DecreaseQuantity(itemToRemove.Quantity);
-        }
-        else
-        {
-            items.Remove(existingItem);
-        }
-
+        items.Remove(existingItem);
         return true;
     }
 

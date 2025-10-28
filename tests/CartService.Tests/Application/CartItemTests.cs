@@ -5,8 +5,6 @@ namespace CartService.Tests.Application;
 
 public class CartItemTests
 {
-    private static CartItem ValidItem => new() { Id = 1, Name = "Test", Price = 10m, Quantity = 10 };
-
     [Fact]
     public void Create_WhenValid_ShouldCreateCartItem()
     {
@@ -17,6 +15,14 @@ public class CartItemTests
         Assert.Equal(10.5m, item.Price);
         Assert.Equal(5, item.Quantity);
         Assert.Null(item.Image);
+    }
+
+    [Fact]
+    public void Create_WhenQuantityNotSpecified_ShouldHaveDefaultQuantityOfOne()
+    {
+        var item = new CartItem { Id = 1, Name = "Test Item", Price = 10.5m };
+
+        Assert.Equal(1, item.Quantity);
     }
 
     [Fact]
@@ -43,60 +49,6 @@ public class CartItemTests
     [InlineData(int.MinValue)]
     public void Create_WhenQuantityInvalid_ShouldThrowException(int quantity) =>
         Assert.Throws<CartItemQuantityInvalidException>(() => new CartItem { Id = 1, Name = "Test", Price = 10m, Quantity = quantity });
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(5)]
-    [InlineData(int.MaxValue - 1)]
-    public void IncreaseQuantity_WhenValueIsValid_ShouldIncreaseQuantity(int increaseBy)
-    {
-        var item = new CartItem { Id = 1, Name = "Test", Price = 10m, Quantity = 1 };
-        var expectedQuantity = 1 + increaseBy;
-
-        item.IncreaseQuantity(increaseBy);
-
-        Assert.Equal(expectedQuantity, item.Quantity);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    [InlineData(int.MinValue)]
-    public void IncreaseQuantity_WhenValueIsInvalid_ShouldThrowException(int value) =>
-        Assert.Throws<CartItemQuantityInvalidException>(() => ValidItem.IncreaseQuantity(value));
-
-    [Theory]
-    [InlineData(2147483638)]
-    [InlineData(int.MaxValue)]
-    public void IncreaseQuantity_WhenResultingQuantityIsInvalid_ShouldThrowException(int value) =>
-        Assert.Throws<CartItemQuantityInvalidException>(() => ValidItem.IncreaseQuantity(value));
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(5)]
-    [InlineData(9)]
-    public void DecreaseQuantity_WhenValueIsLessThanCurrentQuantity_ShouldDecreaseQuantity(int decreaseBy)
-    {
-        var item = new CartItem { Id = 1, Name = "Test", Price = 10m, Quantity = 10 };
-        var expectedQuantity = 10 - decreaseBy;
-
-        item.DecreaseQuantity(decreaseBy);
-
-        Assert.Equal(expectedQuantity, item.Quantity);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    [InlineData(int.MinValue)]
-    public void DecreaseQuantity_WhenValueIsInvalid_ShouldThrowException(int value) =>
-    Assert.Throws<CartItemQuantityInvalidException>(() => ValidItem.IncreaseQuantity(value));
-
-    [Theory]
-    [InlineData(11)]
-    [InlineData(int.MaxValue)]
-    public void DecreaseQuantity_WhenResultingQuantityIsInvalid_ShouldThrowException(int value) =>
-        Assert.Throws<CartItemQuantityInvalidException>(() => ValidItem.DecreaseQuantity(value));
 
     [Fact]
     public void Equals_WhenItemsHaveSameId_ShouldReturnTrue()

@@ -5,7 +5,7 @@ namespace CartService.Tests.Application;
 public class CartTests
 {
     [Fact]
-    public void Create_WhenDefault_ShouldCreateEmptyCart()
+    public void ShouldCreateEmptyCart()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
 
@@ -15,7 +15,7 @@ public class CartTests
     }
 
     [Fact]
-    public void AddItem_WhenItemIsNull_ShouldThrowArgumentNullException()
+    public void AddItem_WhenNull_ShouldThrowException()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
 
@@ -23,7 +23,7 @@ public class CartTests
     }
 
     [Fact]
-    public void AddItem_WhenCartIsEmpty_ShouldAddItem()
+    public void AddItem_ShouldAddNewItemToCart()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
         var item = new CartItem
@@ -45,7 +45,7 @@ public class CartTests
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(10)]
-    public void AddItem_WhenMultipleUniqueItems_ShouldAddAllItems(int itemCount)
+    public void AddItem_ShouldAddMultipleDifferentItems(int itemCount)
     {
         var cart = new Cart { Id = Guid.NewGuid() };
 
@@ -64,7 +64,7 @@ public class CartTests
     }
 
     [Fact]
-    public void AddItem_WhenItemAlreadyExists_ShouldIncreaseQuantity()
+    public void AddItem_ShouldIncreaseQuantityForExistingItem()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
         var item = new CartItem
@@ -89,58 +89,19 @@ public class CartTests
         Assert.Equal(8, cart.Items[0].Quantity);
     }
 
-    [Theory]
-    [InlineData(1, 1)]
-    [InlineData(5, 5)]
-    [InlineData(10, 10)]
-    public void AddItem_WhenSameItemAddedMultipleTimes_ShouldAccumulateQuantity(int addCount, int quantityPerAdd)
-    {
-        var cart = new Cart { Id = Guid.NewGuid() };
-        var expectedQuantity = addCount * quantityPerAdd;
-
-        for (int i = 0; i < addCount; i++)
-        {
-            cart.AddItem(new CartItem
-            {
-                Id = 1,
-                Name = "Test",
-                Price = 10m,
-                Quantity = quantityPerAdd
-            });
-        }
-
-        Assert.Single(cart.Items);
-        Assert.Equal(expectedQuantity, cart.Items[0].Quantity);
-    }
-
     [Fact]
-    public void RemoveItem_WhenItemIsNull_ShouldThrowArgumentNullException()
+    public void RemoveItem_ShouldReturnFalseForEmptyCart()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
 
-        Assert.Throws<ArgumentNullException>(() => cart.RemoveItem(null!));
-    }
-
-    [Fact]
-    public void RemoveItem_WhenCartIsEmpty_ShouldReturnFalse()
-    {
-        var cart = new Cart { Id = Guid.NewGuid() };
-        var item = new CartItem
-        {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = 5
-        };
-
-        var result = cart.RemoveItem(item);
+        var result = cart.RemoveItem(1);
 
         Assert.False(result);
         Assert.Empty(cart.Items);
     }
 
     [Fact]
-    public void RemoveItem_WhenItemDoesNotExist_ShouldReturnFalse()
+    public void RemoveItem_ShouldReturnFalseWhenItemNotFound()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
         cart.AddItem(new CartItem
@@ -151,21 +112,14 @@ public class CartTests
             Quantity = 5
         });
 
-        var nonExistentItem = new CartItem
-        {
-            Id = 999,
-            Name = "Other",
-            Price = 20m,
-            Quantity = 1
-        };
-        var result = cart.RemoveItem(nonExistentItem);
+        var result = cart.RemoveItem(999);
 
         Assert.False(result);
         Assert.Single(cart.Items);
     }
 
     [Fact]
-    public void RemoveItem_WhenQuantityEqualsItemQuantity_ShouldRemoveItem()
+    public void RemoveItem_ShouldRemoveExistingItem()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
         var item = new CartItem
@@ -177,77 +131,40 @@ public class CartTests
         };
         cart.AddItem(item);
 
-        var itemToRemove = new CartItem
-        {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = 5
-        };
-        var result = cart.RemoveItem(itemToRemove);
+        var result = cart.RemoveItem(item.Id);
 
         Assert.True(result);
         Assert.Empty(cart.Items);
     }
 
     [Fact]
-    public void RemoveItem_WhenQuantityGreaterThanItemQuantity_ShouldRemoveItem()
+    public void RemoveItem_ShouldRemoveOnlySpecifiedItem()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
-        var item = new CartItem
+        cart.AddItem(new CartItem
         {
             Id = 1,
-            Name = "Test",
+            Name = "Test1",
             Price = 10m,
             Quantity = 5
-        };
-        cart.AddItem(item);
-
-        var itemToRemove = new CartItem
+        });
+        cart.AddItem(new CartItem
         {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = 10
-        };
-        var result = cart.RemoveItem(itemToRemove);
+            Id = 2,
+            Name = "Test2",
+            Price = 20m,
+            Quantity = 3
+        });
 
-        Assert.True(result);
-        Assert.Empty(cart.Items);
-    }
-
-    [Theory]
-    [InlineData(10, 1)]
-    [InlineData(10, 5)]
-    [InlineData(10, 9)]
-    public void RemoveItem_WhenQuantityLessThanItemQuantity_ShouldDecreaseQuantity(int initialQuantity, int removeQuantity)
-    {
-        var cart = new Cart { Id = Guid.NewGuid() };
-        var item = new CartItem
-        {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = initialQuantity
-        };
-        cart.AddItem(item);
-
-        var itemToRemove = new CartItem
-        {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = removeQuantity
-        };
-        var result = cart.RemoveItem(itemToRemove);
+        var result = cart.RemoveItem(1);
 
         Assert.True(result);
         Assert.Single(cart.Items);
-        Assert.Equal(initialQuantity - removeQuantity, cart.Items[0].Quantity);
+        Assert.Equal(2, cart.Items[0].Id);
     }
 
     [Fact]
-    public void Clear_WhenCartIsEmpty_ShouldReturnFalse()
+    public void Clear_ShouldReturnFalseForEmptyCart()
     {
         var cart = new Cart { Id = Guid.NewGuid() };
 
@@ -261,7 +178,7 @@ public class CartTests
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(10)]
-    public void Clear_WhenCartHasItems_ShouldRemoveAllItemsAndReturnTrue(int itemCount)
+    public void Clear_ShouldRemoveAllItems(int itemCount)
     {
         var cart = new Cart { Id = Guid.NewGuid() };
         for (int i = 1; i <= itemCount; i++)
@@ -282,65 +199,7 @@ public class CartTests
     }
 
     [Fact]
-    public void Clear_WhenCalledMultipleTimes_ShouldReturnFalseAfterFirstCall()
-    {
-        var cart = new Cart { Id = Guid.NewGuid() };
-        cart.AddItem(new CartItem
-        {
-            Id = 1,
-            Name = "Test",
-            Price = 10m,
-            Quantity = 1
-        });
-
-        var firstResult = cart.Clear();
-        var secondResult = cart.Clear();
-
-        Assert.True(firstResult);
-        Assert.False(secondResult);
-        Assert.Empty(cart.Items);
-    }
-
-    [Fact]
-    public void Items_WhenModified_ShouldReflectChanges()
-    {
-        var cart = new Cart { Id = Guid.NewGuid() };
-
-        Assert.Empty(cart.Items);
-
-        cart.AddItem(new CartItem
-        {
-            Id = 1,
-            Name = "Test1",
-            Price = 10m,
-            Quantity = 1
-        });
-        Assert.Single(cart.Items);
-
-        cart.AddItem(new CartItem
-        {
-            Id = 2,
-            Name = "Test2",
-            Price = 20m,
-            Quantity = 2
-        });
-        Assert.Equal(2, cart.Items.Count);
-
-        cart.RemoveItem(new CartItem
-        {
-            Id = 1,
-            Name = "Test1",
-            Price = 10m,
-            Quantity = 1
-        });
-        Assert.Single(cart.Items);
-
-        cart.Clear();
-        Assert.Empty(cart.Items);
-    }
-
-    [Fact]
-    public void Equals_WhenCartsHaveSameId_ShouldReturnTrue()
+    public void Equals_ShouldReturnTrueForSameId()
     {
         var cartId = Guid.NewGuid();
         var cart1 = new Cart { Id = cartId };
@@ -359,7 +218,7 @@ public class CartTests
     }
 
     [Fact]
-    public void Equals_WhenCartsHaveDifferentId_ShouldReturnFalse()
+    public void Equals_ShouldReturnFalseForDifferentId()
     {
         var cart1 = new Cart { Id = Guid.NewGuid() };
         var cart2 = new Cart { Id = Guid.NewGuid() };
@@ -369,7 +228,7 @@ public class CartTests
     }
 
     [Fact]
-    public void GetHashCode_WhenCartsHaveSameId_ShouldReturnSameHashCode()
+    public void GetHashCode_ShouldReturnSameValueForSameId()
     {
         var cartId = Guid.NewGuid();
         var cart1 = new Cart { Id = cartId };

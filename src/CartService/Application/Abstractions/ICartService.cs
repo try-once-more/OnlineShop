@@ -7,7 +7,8 @@ public interface ICartService
     Task<IReadOnlyList<CartItem>> GetItemsAsync(Guid cartId);
     Task AddItemAsync(Guid cartId, CartItem item);
     Task AddItemsAsync(Guid cartId, IEnumerable<CartItem> items);
-    Task RemoveItemAsync(Guid cartId, CartItem item);
-    Task RemoveItemsAsync(Guid cartId, IEnumerable<CartItem> items);
+    Task ChangeItemQuantityAsync(Guid cartId, int itemId, int newQuantity);
+    Task RemoveItemAsync(Guid cartId, int itemId);
+    Task RemoveItemsAsync(Guid cartId, IEnumerable<int> itemIds);
     Task ClearAsync(Guid cartId);
 }

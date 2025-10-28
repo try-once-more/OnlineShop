@@ -13,9 +13,10 @@ public class CartServiceTests
     public CartServiceTests() => service = new CartAppService(repositoryMock.Object);
 
     [Fact]
-    public async Task GetItemsAsync_WhenCartDoesNotExist_ShouldReturnEmpty()
+    public async Task GetItemsAsync_ShouldReturnEmptyForNonExistentCart()
     {
         var emptyCartId = Guid.NewGuid();
+
         var actualItems = await service.GetItemsAsync(emptyCartId);
 
         Assert.NotNull(actualItems);
@@ -25,7 +26,7 @@ public class CartServiceTests
     [Theory]
     [InlineData(1)]
     [InlineData(1001)]
-    public async Task GetItemsAsync_WhenCartExists_ShouldReturnAllItems(int itemCount)
+    public async Task GetItemsAsync_ShouldReturnAllItemsFromCart(int itemCount)
     {
         var cart = TestHelper.CreateCartWithRandomItems(itemCount);
         repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
@@ -51,24 +52,25 @@ public class CartServiceTests
     }
 
     [Fact]
-    public async Task AddItemAsync_WhenCartDoesNotExist_ShouldCreateCartAndAddItem()
+    public async Task AddItemAsync_ShouldCreateCartAndAddItem()
     {
         var cart = TestHelper.CreateCartWithRandomItems(1);
         var item = cart.Items[0];
+
         await service.AddItemAsync(cart.Id, item);
 
         repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c =>
-            c.Id == cart.Id &&
-            c.Items.Count == 1 &&
-            c.Items[0].Id == item.Id &&
-            c.Items[0].Name == item.Name &&
-            c.Items[0].Price == item.Price &&
-            c.Items[0].Quantity == item.Quantity
+            c.Id == cart.Id
+            && c.Items.Count == 1
+            && c.Items[0].Id == item.Id
+            && c.Items[0].Name == item.Name
+            && c.Items[0].Price == item.Price
+            && c.Items[0].Quantity == item.Quantity
         )), Times.Once);
     }
 
     [Fact]
-    public async Task AddItemAsync_WhenCartExists_ShouldAddNewItem()
+    public async Task AddItemAsync_ShouldAddNewItemToExistingCart()
     {
         var cart = TestHelper.CreateCartWithRandomItems(1);
         var newItem = new CartItem
@@ -83,14 +85,14 @@ public class CartServiceTests
         await service.AddItemAsync(cart.Id, newItem);
 
         repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c =>
-             c.Id == cart.Id &&
-             c.Items.Count == 2 &&
-             c.Items.Any(i => i.Id == newItem.Id)
+            c.Id == cart.Id &&
+            c.Items.Count == 2 &&
+            c.Items.Any(i => i.Id == newItem.Id)
         )), Times.Once);
     }
 
     [Fact]
-    public async Task AddItemAsync_WhenItemExists_ShouldIncreaseQuantity()
+    public async Task AddItemAsync_ShouldIncreaseQuantityForExistingItem()
     {
         var cart = TestHelper.CreateCartWithRandomItems(1, maxQuantity: 500);
         var addSame = new CartItem
@@ -109,13 +111,13 @@ public class CartServiceTests
             c.Id == cart.Id &&
             c.Items.Count == 1 &&
             c.Items[0].Quantity == expectedQuantity
-        )), Times.Once);
+      )), Times.Once);
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(1001)]
-    public async Task AddItemsAsync_WhenCartDoesNotExist_ShouldCreateCartAndAddItems(int itemCount)
+    public async Task AddItemsAsync_ShouldCreateCartAndAddMultipleItems(int itemCount)
     {
         Cart? savedCart = null;
         repositoryMock.Setup(r => r.SaveAsync(It.IsAny<Cart>()))
@@ -124,7 +126,7 @@ public class CartServiceTests
         var cart = TestHelper.CreateCartWithRandomItems(itemCount);
 
         await service.AddItemsAsync(cart.Id, cart.Items);
-        
+
         repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Once);
 
         Assert.NotNull(savedCart);
@@ -144,7 +146,7 @@ public class CartServiceTests
     }
 
     [Fact]
-    public async Task AddItemsAsync_WhenCartExists_ShouldAddNewItems()
+    public async Task AddItemsAsync_ShouldAddNewItemsToExistingCart()
     {
         var cart = TestHelper.CreateCartWithRandomItems(2);
         var newItems = new List<CartItem>
@@ -160,144 +162,83 @@ public class CartServiceTests
     }
 
     [Fact]
-    public async Task RemoveItemAsync_WhenCartDoesNotExist_ShouldNotSave()
-    {
-        var cartId = Guid.NewGuid();
-        var item = new CartItem
-        {
-            Id = 1,
-            Name = "Item",
-            Price = 10m,
-            Quantity = 1
-        };
-
-        await service.RemoveItemAsync(cartId, item);
-
-        repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task RemoveItemAsync_WhenItemDoesNotExist_ShouldNotSave()
+    public async Task ChangeItemQuantityAsync_ShouldUpdateQuantity()
     {
         var cart = TestHelper.CreateCartWithRandomItems(1);
-        var nonExistentItem = new CartItem
-        {
-            Id = 999,
-            Name = "NonExistent",
-            Price = 10m,
-            Quantity = 1
-        };
+        var itemId = cart.Items[0].Id;
+        var newQuantity = 100;
         repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
 
-        await service.RemoveItemAsync(cart.Id, nonExistentItem);
-
-        repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task RemoveItemAsync_WhenQuantityEqualsItemQuantity_ShouldRemoveItem()
-    {
-        var cart = TestHelper.CreateCartWithRandomItems(1);
-        var itemToRemove = new CartItem
-        {
-            Id = cart.Items[0].Id,
-            Name = cart.Items[0].Name,
-            Price = cart.Items[0].Price,
-            Quantity = cart.Items[0].Quantity
-        };
-        repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
-
-        await service.RemoveItemAsync(cart.Id, itemToRemove);
-
-        repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c => c.Id == cart.Id && c.Items.Count == 0)), Times.Once);
-    }
-
-    [Fact]
-    public async Task RemoveItemAsync_WhenQuantityLessThanItemQuantity_ShouldDecreaseQuantity()
-    {
-        var cart = TestHelper.CreateCartWithRandomItems(1, minQuantity: 500);
-        var itemToRemove = new CartItem
-        {
-            Id = cart.Items[0].Id,
-            Name = cart.Items[0].Name,
-            Price = cart.Items[0].Price,
-            Quantity = cart.Items[0].Quantity - 1
-        };
-
-        repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
-
-        await service.RemoveItemAsync(cart.Id, itemToRemove);
+        await service.ChangeItemQuantityAsync(cart.Id, itemId, newQuantity);
 
         repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c =>
-            c.Id == cart.Id
-            && c.Items.Count == 1
-            && c.Items[0].Quantity == 1
+            c.Id == cart.Id &&
+            c.Items[0].Quantity == newQuantity
         )), Times.Once);
     }
 
     [Fact]
-    public async Task RemoveItemAsync_WhenQuantityGreaterThanItemQuantity_ShouldRemoveItem()
-    {
-        var cart = TestHelper.CreateCartWithRandomItems(1, maxQuantity: 500);
-        var itemToRemove = new CartItem
-        {
-            Id = cart.Items[0].Id,
-            Name = cart.Items[0].Name,
-            Price = cart.Items[0].Price,
-            Quantity = cart.Items[0].Quantity + 1
-        };
-        repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
-
-        await service.RemoveItemAsync(cart.Id, itemToRemove);
-
-        repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c => c.Id == cart.Id && c.Items.Count == 0)), Times.Once);
-    }
-
-    [Fact]
-    public async Task RemoveItemsAsync_WhenCartDoesNotExist_ShouldNotSave()
+    public async Task RemoveItemAsync_ShouldNotSaveForNonExistentCart()
     {
         var cartId = Guid.NewGuid();
-        var items = new List<CartItem>
-        {
-            new() { Id = 1, Name = "Item1", Price = 10m, Quantity = 1 },
-            new() { Id = 2, Name = "Item2", Price = 20m, Quantity = 2 }
-        };
 
-        await service.RemoveItemsAsync(cartId, items);
+        await service.RemoveItemAsync(cartId, 1);
 
         repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Never);
     }
 
     [Fact]
-    public async Task RemoveItemsAsync_WhenCartExists_ShouldRemoveItems()
+    public async Task RemoveItemAsync_ShouldNotSaveWhenItemNotFound()
+    {
+        var cart = TestHelper.CreateCartWithRandomItems(1);
+        repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
+
+        await service.RemoveItemAsync(cart.Id, 999);
+
+        repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RemoveItemAsync_ShouldRemoveExistingItem()
+    {
+        var cart = TestHelper.CreateCartWithRandomItems(1);
+        var itemId = cart.Items[0].Id;
+        repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
+
+        await service.RemoveItemAsync(cart.Id, itemId);
+
+        repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c => c.Id == cart.Id && c.Items.Count == 0)), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveItemsAsync_ShouldNotSaveForNonExistentCart()
+    {
+        var cartId = Guid.NewGuid();
+        var itemIds = new List<int> { 1, 2 };
+
+        await service.RemoveItemsAsync(cartId, itemIds);
+
+        repositoryMock.Verify(r => r.SaveAsync(It.IsAny<Cart>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RemoveItemsAsync_ShouldRemoveMultipleItems()
     {
         var cart = TestHelper.CreateCartWithRandomItems(3);
-        var itemsToRemove = new List<CartItem>
+        var itemIdsToRemove = new List<int>
         {
-            new()
-            {
-                Id = cart.Items[0].Id,
-                Name = cart.Items[0].Name,
-                Price = cart.Items[0].Price,
-                Quantity = cart.Items[0].Quantity
-            },
-            new()
-            {
-                Id = cart.Items[1].Id,
-                Name = cart.Items[1].Name,
-                Price = cart.Items[1].Price,
-                Quantity = cart.Items[1].Quantity
-            }
+            cart.Items[0].Id,
+            cart.Items[1].Id
         };
         repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
 
-        await service.RemoveItemsAsync(cart.Id, itemsToRemove);
+        await service.RemoveItemsAsync(cart.Id, itemIdsToRemove);
 
         repositoryMock.Verify(r => r.SaveAsync(It.Is<Cart>(c => c.Id == cart.Id && c.Items.Count == 1)), Times.Once);
     }
 
     [Fact]
-    public async Task ClearAsync_WhenCartDoesNotExist_ShouldNotSave()
+    public async Task ClearAsync_ShouldNotSaveForNonExistentCart()
     {
         var cartId = Guid.NewGuid();
 
@@ -307,7 +248,7 @@ public class CartServiceTests
     }
 
     [Fact]
-    public async Task ClearAsync_WhenCartIsEmpty_ShouldNotSave()
+    public async Task ClearAsync_ShouldNotSaveForEmptyCart()
     {
         var cart = TestHelper.CreateCartWithRandomItems(0);
         repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);
@@ -320,7 +261,7 @@ public class CartServiceTests
     [Theory]
     [InlineData(1)]
     [InlineData(1001)]
-    public async Task ClearAsync_WhenCartHasItems_ShouldRemoveAllItems(int itemCount)
+    public async Task ClearAsync_ShouldRemoveAllItems(int itemCount)
     {
         var cart = TestHelper.CreateCartWithRandomItems(itemCount);
         repositoryMock.Setup(r => r.GetAsync(cart.Id)).ReturnsAsync(cart);

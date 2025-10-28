@@ -11,10 +11,11 @@ public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquat
         => !(a == b);
 
     public bool Equals(BaseEntity<T>? other) =>
-        other is not null &&
-        !EqualityComparer<T>.Default.Equals(Id, default) &&
-        !EqualityComparer<T>.Default.Equals(other.Id, default) &&
-        Id!.Equals(other.Id);
+        other is not null
+        && GetType() == other.GetType()
+        && !EqualityComparer<T>.Default.Equals(Id, default)
+        && !EqualityComparer<T>.Default.Equals(other.Id, default)
+        && Id!.Equals(other.Id);
 
     public override bool Equals(object? obj) =>
         obj is BaseEntity<T> other && Equals(other);

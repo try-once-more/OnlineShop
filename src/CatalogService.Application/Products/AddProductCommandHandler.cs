@@ -7,14 +7,46 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
 
-public record AddProductCommand(
-    [property: Required, MaxLength(50)] string Name,
-    string? Description,
-    Uri? ImageUrl,
-    [property: Range(1, int.MaxValue)] int CategoryId,
-    [property: Range(typeof(decimal), "0.01", "79228162514264337593543950335")] decimal Price,
-    [property: Range(0, int.MaxValue)] int Amount
-) : IRequest<Product>;
+/// <summary>
+/// Represents a request to create a new product.
+/// </summary>
+public record AddProductCommand : IRequest<Product>
+{
+    /// <summary>
+    /// Product name.
+    /// </summary>
+    [Required, MaxLength(50)]
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// Optional product description.
+    /// </summary>
+    public string? Description { get; init; }
+
+    /// <summary>
+    /// Optional URL for the product image.
+    /// </summary>
+    [Url]
+    public Uri? ImageUrl { get; init; }
+
+    /// <summary>
+    /// ID of the category this product belongs to.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int CategoryId { get; init; }
+
+    /// <summary>
+    /// Product price.
+    /// </summary>
+    [Required, Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+    public required decimal Price { get; init; }
+
+    /// <summary>
+    /// Product amount.
+    /// </summary>
+    [Range(0, int.MaxValue)]
+    public int Amount { get; init; }
+}
 
 internal class AddProductCommandHandler(IUnitOfWork unitOfWork, ILogger<AddProductCommandHandler>? logger = default)
     : IRequestHandler<AddProductCommand, Product>

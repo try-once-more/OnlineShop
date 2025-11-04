@@ -21,7 +21,7 @@ public class GetCategoryByIdQueryHandlerTests : HandlerTestBase
             .Setup(r => r.GetAsync(categoryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedCategory);
 
-        var query = new GetCategoryByIdQuery(categoryId);
+        var query = new GetCategoryByIdQuery { Id = categoryId };
 
         var result = await Sender.Send(query, CancellationToken.None);
 

@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CatalogService.Application.Products;
 
+/// <summary>
+/// Represents a request to retrieve all products.
+/// </summary>
 public record GetAllProductsQuery : IRequest<IReadOnlyCollection<Product>>;
 
 internal class GetAllProductsQueryHandler(IUnitOfWork unitOfWork, ILogger<GetAllProductsQueryHandler>? logger = default)

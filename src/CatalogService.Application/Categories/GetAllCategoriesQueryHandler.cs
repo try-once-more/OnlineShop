@@ -5,6 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CatalogService.Application.Categories;
 
+/// <summary>
+/// Represents a request to retrieve all categories.
+/// </summary>
 public record GetAllCategoriesQuery : IRequest<IReadOnlyCollection<Category>>;
 
 internal class GetAllCategoriesQueryHandler(IUnitOfWork unitOfWork, ILogger<GetAllCategoriesQueryHandler>? logger = default)

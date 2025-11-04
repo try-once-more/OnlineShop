@@ -6,7 +6,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Categories;
 
-public record DeleteCategoryCommand([property: Required, Range(1, int.MaxValue)] int Id) : IRequest;
+/// <summary>
+/// Represents a request to delete a category.
+/// </summary>
+public record DeleteCategoryCommand : IRequest
+{
+    /// <summary>
+    /// ID of the category to delete.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int Id { get; init; }
+}
 
 internal class DeleteCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteCategoryCommandHandler>? logger = default)
     : IRequestHandler<DeleteCategoryCommand>

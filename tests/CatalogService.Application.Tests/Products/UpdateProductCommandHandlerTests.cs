@@ -23,14 +23,16 @@ public class UpdateProductCommandHandlerTests : HandlerTestBase
             Amount = 5
         };
 
-        var command = new UpdateProductCommand(
-            Id: 1,
-            Name: "New Gaming Laptop",
-            Description: "High-end gaming laptop",
-            ImageUrl: new Uri("https://example.com/new.jpg"),
-            CategoryId: 2,
-            Price: 1999.99m,
-            Amount: 15);
+        var command = new UpdateProductCommand
+        {
+            Id = 1,
+            Name = "New Gaming Laptop",
+            Description = "High-end gaming laptop",
+            ImageUrl = new Uri("https://example.com/new.jpg"),
+            CategoryId = 2,
+            Price = 1999.99m,
+            Amount = 15
+        };
 
         MockProductRepository
             .Setup(r => r.GetAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -77,14 +79,16 @@ public class UpdateProductCommandHandlerTests : HandlerTestBase
             Amount = 10
         };
 
-        var command = new UpdateProductCommand(
-            Id: 1,
-            Name: "Updated Laptop",
-            Description: null,
-            ImageUrl: null,
-            CategoryId: null,
-            Price: 1299.99m,
-            Amount: null);
+        var command = new UpdateProductCommand
+        {
+            Id = 1,
+            Name = "Updated Laptop",
+            Description = null,
+            ImageUrl = null,
+            CategoryId = null,
+            Price = 1299.99m,
+            Amount = null
+        };
 
         MockProductRepository
             .Setup(r => r.GetAsync(command.Id, It.IsAny<CancellationToken>()))
@@ -100,11 +104,11 @@ public class UpdateProductCommandHandlerTests : HandlerTestBase
 
         Assert.NotNull(updatedProduct);
         Assert.Equal(command.Name, updatedProduct.Name);
-        Assert.Equal(existingProduct.Description, updatedProduct.Description);
-        Assert.Equal(existingProduct.ImageUrl, updatedProduct.ImageUrl);
+        Assert.Equal(command.Description, updatedProduct.Description);
+        Assert.Equal(command.ImageUrl, updatedProduct.ImageUrl);
         Assert.Equal(command.Price, updatedProduct.Price);
         Assert.Equal(existingProduct.Amount, updatedProduct.Amount);
-        Assert.Equal(category.Id, updatedProduct.Category.Id);
+        Assert.Equal(existingProduct.Category.Id, updatedProduct.Category.Id);
 
         MockProductRepository.Verify(r => r.GetAsync(command.Id, It.IsAny<CancellationToken>()), Times.Once);
         MockProductRepository.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);

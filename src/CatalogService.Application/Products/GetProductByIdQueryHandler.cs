@@ -6,7 +6,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
 
-public record GetProductByIdQuery([property: Required, Range(1, int.MaxValue)] int Id) : IRequest<Product?>;
+/// <summary>
+/// Represents a request to retrieve a specific product by its ID.
+/// </summary>
+public record GetProductByIdQuery : IRequest<Product?>
+{
+    /// <summary>
+    /// ID of the product to retrieve.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int Id { get; init; }
+}
 
 internal class GetProductByIdQueryHandler(IUnitOfWork unitOfWork, ILogger<GetProductByIdQueryHandler>? logger = default)
     : IRequestHandler<GetProductByIdQuery, Product?>

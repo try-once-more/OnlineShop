@@ -6,7 +6,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Categories;
 
-public record GetCategoryByIdQuery([property: Required, Range(1, int.MaxValue)] int Id) : IRequest<Category?>;
+/// <summary>
+/// Represents a request to retrieve a category by ID.
+/// </summary>
+public record GetCategoryByIdQuery : IRequest<Category?>
+{
+    /// <summary>
+    /// ID of the category to retrieve.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int Id { get; init; }
+}
 
 internal class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork, ILogger<GetCategoryByIdQueryHandler>? logger = default)
     : IRequestHandler<GetCategoryByIdQuery, Category?>

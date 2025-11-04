@@ -9,10 +9,12 @@ public class AddCategoryCommandHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_WhenValidCommandWithoutParent_ShouldCreateCategory()
     {
-        var command = new AddCategoryCommand(
-            Name: "Electronics",
-            ImageUrl: new Uri("https://example.com/electronics.jpg"),
-            ParentCategoryId: null);
+        var command = new AddCategoryCommand
+        {
+            Name = "Electronics",
+            ImageUrl = new Uri("https://example.com/electronics.jpg"),
+            ParentCategoryId = null
+        };
 
         Category? capturedCategory = null;
 
@@ -37,10 +39,12 @@ public class AddCategoryCommandHandlerTests : HandlerTestBase
     public async Task Handle_WhenValidCommandWithParent_ShouldCreateCategoryWithParent()
     {
         var parentCategory = new Category { Id = 1, Name = "Electronics" };
-        var command = new AddCategoryCommand(
-            Name: "Laptops",
-            ImageUrl: new Uri("https://example.com/laptops.jpg"),
-            ParentCategoryId: parentCategory.Id);
+        var command = new AddCategoryCommand
+        {
+            Name = "Laptops",
+            ImageUrl = new Uri("https://example.com/laptops.jpg"),
+            ParentCategoryId = parentCategory.Id
+        };
 
         MockCategoryRepository
             .Setup(r => r.GetAsync(parentCategory.Id, It.IsAny<CancellationToken>()))

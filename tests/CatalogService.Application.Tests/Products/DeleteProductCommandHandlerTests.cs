@@ -9,7 +9,7 @@ public class DeleteProductCommandHandlerTests : HandlerTestBase
     public async Task Handle_WhenValidProductId_ShouldDeleteProduct()
     {
         var productId = 1;
-        var command = new DeleteProductCommand(productId);
+        var command = new DeleteProductCommand { Id = productId };
 
         int deletedProductId = 0;
         MockProductRepository
@@ -29,7 +29,7 @@ public class DeleteProductCommandHandlerTests : HandlerTestBase
     [InlineData(999)]
     public async Task Handle_WhenDifferentProductIds_ShouldDeleteCorrectProduct(int productId)
     {
-        var command = new DeleteProductCommand(productId);
+        var command = new DeleteProductCommand { Id = productId };
         int deletedProductId = 0;
 
         MockProductRepository

@@ -7,10 +7,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Categories;
 
-public record AddCategoryCommand(
-    [property: Required, MaxLength(50)] string Name,
-    Uri? ImageUrl,
-    int? ParentCategoryId) : IRequest<Category>;
+/// <summary>
+/// Represents a request to create a new category.
+/// </summary>
+public record AddCategoryCommand : IRequest<Category>
+{
+    /// <summary>
+    /// Category name.
+    /// </summary>
+    [Required, MaxLength(50)]
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// Optional URL for the category image.
+    /// </summary>
+    [Url]
+    public Uri? ImageUrl { get; init; }
+
+    /// <summary>
+    /// Optional parent category ID.
+    /// </summary>
+    public int? ParentCategoryId { get; init; }
+}
+
 
 internal class AddCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<AddCategoryCommandHandler>? logger = default)
     : IRequestHandler<AddCategoryCommand, Category>

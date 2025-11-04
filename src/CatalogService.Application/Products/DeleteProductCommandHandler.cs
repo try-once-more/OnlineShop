@@ -5,7 +5,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
 
-public record DeleteProductCommand([property: Required, Range(1, int.MaxValue)] int Id) : IRequest;
+/// <summary>
+/// Represents a request to delete an existing product by its ID.
+/// </summary>
+public record DeleteProductCommand : IRequest
+{
+    /// <summary>
+    /// ID of the product to delete.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int Id { get; init; }
+}
 
 internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteProductCommandHandler>? logger = default)
     : IRequestHandler<DeleteProductCommand>

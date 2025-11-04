@@ -1,4 +1,5 @@
 using CatalogService.Application.Abstractions.Repository;
+using CatalogService.Application.Common;
 using CatalogService.Application.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -6,11 +7,36 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Categories;
 
-public record UpdateCategoryCommand(
-    [property: Required, Range(1, int.MaxValue)] int Id,
-    [property: MaxLength(50)] string? Name,
-    Uri? ImageUrl,
-    [property: Range(1, int.MaxValue)] int? ParentCategoryId) : IRequest;
+/// <summary>
+/// Represents a request to update an existing category.
+/// </summary>
+public record UpdateCategoryCommand : IRequest
+{
+    /// <summary>
+    /// ID of the category to update.
+    /// </summary>
+    [Required, Range(1, int.MaxValue)]
+    public required int Id { get; init; }
+
+    /// <summary>
+    /// Optional new name for the category.
+    /// </summary>
+    [MaxLength(50)]
+    public Optional<string> Name { get; init; }
+
+    /// <summary>
+    /// Optional URL for the category image.
+    /// </summary>
+    [Url]
+    public Optional<Uri> ImageUrl { get; init; }
+
+    /// <summary>
+    /// Optional parent category ID.
+    /// </summary>
+    [Range(1, int.MaxValue)]
+    public int? ParentCategoryId { get; init; }
+}
+
 
 internal class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<UpdateCategoryCommandHandler>? logger = default)
     : IRequestHandler<UpdateCategoryCommand>
@@ -24,11 +50,11 @@ internal class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<Upda
         var existing = await unitOfWork.Categories.GetAsync(request.Id, cancellationToken)
             ?? throw new CategoryNotFoundException(request.Id);
 
-        if (!string.IsNullOrWhiteSpace(request.Name))
-            existing.Name = request.Name;
+        if (request.Name.HasValue)
+            existing.Name = request.Name.Value;
 
-        if (request.ImageUrl != null)
-            existing.ImageUrl = request.ImageUrl;
+        if (request.ImageUrl.HasValue)
+            existing.ImageUrl = request.ImageUrl.Value;
 
         if (request.ParentCategoryId.HasValue)
         {

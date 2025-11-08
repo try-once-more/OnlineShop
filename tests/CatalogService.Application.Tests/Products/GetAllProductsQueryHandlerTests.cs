@@ -46,7 +46,7 @@ public class GetAllProductsQueryHandlerTests : HandlerTestBase
             .Setup(r => r.ListAsync(null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedProducts);
 
-        var query = new GetAllProductsQuery();
+        var query = new GetProductsQuery();
 
         var result = await Sender.Send(query, CancellationToken.None);
 
@@ -81,7 +81,7 @@ public class GetAllProductsQueryHandlerTests : HandlerTestBase
     [Fact]
     public async Task Handle_WhenNoProducts_ShouldReturnEmptyCollection()
     {
-        var query = new GetAllProductsQuery();
+        var query = new GetProductsQuery();
 
         MockProductRepository
             .Setup(r => r.ListAsync(null, It.IsAny<CancellationToken>()))

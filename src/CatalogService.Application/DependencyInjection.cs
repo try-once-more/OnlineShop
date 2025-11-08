@@ -1,4 +1,4 @@
-using CatalogService.Application.Behaviors;
+using CatalogService.Application.Pipeline;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +10,7 @@ public static class DependencyInjection
         {
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
         return services;
     }

@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-namespace CatalogService.Application.Behaviors;
+namespace CatalogService.Application.Pipeline;
 
 internal class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>>? logger = default)
     : IPipelineBehavior<TRequest, TResponse>

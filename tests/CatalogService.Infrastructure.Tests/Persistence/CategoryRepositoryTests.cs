@@ -125,12 +125,13 @@ public class CategoryRepositoryTests(DatabaseFixture fixture)
             .Setup(s => s.Apply(It.IsAny<IQueryable<Category>>(), It.IsAny<IOrderedQueryable<Category>?>()))
             .Returns<IQueryable<Category>, IOrderedQueryable<Category>?>((query, _) => query.OrderBy(c => c.Name));
 
-        var options = new QueryOptions<Category>(
-            Filter: filter,
-            OrderBy: [sortMock.Object],
-            Skip: 0,
-            Take: expectedCount
-        );
+        var options = new QueryOptions<Category>
+        {
+            Filter = filter,
+            OrderBy = [sortMock.Object],
+            Skip = 0,
+            Take = expectedCount
+        };
 
         var result = await categoryRepository.ListAsync(options);
 

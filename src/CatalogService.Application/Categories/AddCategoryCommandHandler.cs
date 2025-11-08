@@ -15,18 +15,20 @@ public record AddCategoryCommand : IRequest<Category>
     /// <summary>
     /// Category name.
     /// </summary>
-    [Required, MaxLength(50)]
+    [Required(ErrorMessage = "Name is required.")]
+    [Length(1, 50, ErrorMessage = "Name cannot exceed 50 characters.")]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Name cannot be empty or whitespace.")]
     public required string Name { get; init; }
 
     /// <summary>
     /// Optional URL for the category image.
     /// </summary>
-    [Url]
     public Uri? ImageUrl { get; init; }
 
     /// <summary>
     /// Optional parent category ID.
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Parent category ID must be positive.")]
     public int? ParentCategoryId { get; init; }
 }
 

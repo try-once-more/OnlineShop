@@ -3,7 +3,11 @@
 public readonly struct Optional<T>
 {
     public readonly bool HasValue { get; }
-    public readonly T Value { get; }
+    public T Value
+    {
+        get => HasValue ? field : throw new InvalidOperationException();
+        init;
+    }
 
     public Optional(T value)
     {

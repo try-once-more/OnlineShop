@@ -8,14 +8,15 @@ using System.ComponentModel.DataAnnotations;
 namespace CatalogService.Application.Products;
 
 /// <summary>
-/// Represents a request to retrieve all products for a specific category.
+/// Represents a request to retrieve products for a specific category with optional pagination.
 /// </summary>
-public record GetProductsByCategoryIdQuery : IRequest<IReadOnlyCollection<Product>>
+public record GetProductsByCategoryIdQuery : GetProductsQuery
 {
     /// <summary>
     /// ID of the category whose products are being requested. Must be greater than 0.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "Category ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Category ID must be positive.")]
     public required int CategoryId { get; init; }
 }
 
@@ -28,9 +29,19 @@ internal class GetProductsByCategoryIdQueryHandler(IUnitOfWork unitOfWork, ILogg
     {
         logger?.LogDebug("Getting products for category ID: {CategoryId}", request.CategoryId);
 
+        int? Skip = default;
+        int? Take = default;
+        if (request.PageSize.HasValue)
+        {
+            Take = request.PageSize;
+            Skip = (request.PageNumber - 1) * request.PageSize.Value;
+        }
+
         var options = new QueryOptions<Product>
         {
-            Filter = p => p.Category.Id == request.CategoryId
+            Filter = p => p.Category.Id == request.CategoryId,
+            Skip = Skip,
+            Take = Take
         };
 
         var products = await unitOfWork.Products.ListAsync(options, cancellationToken)

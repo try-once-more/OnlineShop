@@ -15,7 +15,9 @@ public record AddProductCommand : IRequest<Product>
     /// <summary>
     /// Product name.
     /// </summary>
-    [Required, MaxLength(50)]
+    [Required(ErrorMessage = "Name is required.")]
+    [Length(1, 50, ErrorMessage = "Name cannot exceed 50 characters.")]
+    [RegularExpression(@".*\S.*", ErrorMessage = "Name cannot be empty or whitespace.")]
     public required string Name { get; init; }
 
     /// <summary>
@@ -26,26 +28,28 @@ public record AddProductCommand : IRequest<Product>
     /// <summary>
     /// Optional URL for the product image.
     /// </summary>
-    [Url]
     public Uri? ImageUrl { get; init; }
 
     /// <summary>
     /// ID of the category this product belongs to.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "Category ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Category ID must be positive.")]
     public required int CategoryId { get; init; }
 
     /// <summary>
     /// Product price.
     /// </summary>
-    [Required, Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+    [Required(ErrorMessage = "Price is required.")]
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ErrorMessage = "Price must be positive.")]
     public required decimal Price { get; init; }
 
     /// <summary>
     /// Product amount.
     /// </summary>
-    [Range(0, int.MaxValue)]
-    public int Amount { get; init; }
+    [Required(ErrorMessage = "Amount is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Amount must be positive.")]
+    public required int Amount { get; init; }
 }
 
 internal class AddProductCommandHandler(IUnitOfWork unitOfWork, ILogger<AddProductCommandHandler>? logger = default)

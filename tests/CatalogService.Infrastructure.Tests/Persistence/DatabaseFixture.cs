@@ -10,16 +10,18 @@ public class DatabaseFixture : IAsyncLifetime
 
     public DatabaseFixture()
     {
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "IntegrationTests";
+
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("IntegrationTests")
-            ?? throw new InvalidOperationException("Connection string 'IntegrationTests' not found");
-
-        var services = new ServiceCollection()
-            .AddCatalogServiceInfrastructure(connectionString);
+        var services = new ServiceCollection();
+        services.Configure<CatalogDatabaseSettings>(configuration.GetSection("ConnectionStrings"));
+        services.AddCatalogServiceInfrastructure();
         ServiceProvider = services.BuildServiceProvider();
     }
 

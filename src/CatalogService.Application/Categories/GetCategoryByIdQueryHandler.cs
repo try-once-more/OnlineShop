@@ -14,7 +14,8 @@ public record GetCategoryByIdQuery : IRequest<Category?>
     /// <summary>
     /// ID of the category to retrieve.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "ID must be positive.")]
     public required int Id { get; init; }
 }
 

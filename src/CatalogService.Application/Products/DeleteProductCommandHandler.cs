@@ -13,7 +13,8 @@ public record DeleteProductCommand : IRequest
     /// <summary>
     /// ID of the product to delete.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "ID must be positive.")]
     public required int Id { get; init; }
 }
 

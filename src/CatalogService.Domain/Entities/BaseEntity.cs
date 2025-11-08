@@ -2,6 +2,10 @@
 
 public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquatable<T>
 {
+
+    /// <summary>
+    /// Identifier of the entity
+    /// </summary>
     public T? Id { get; init; }
 
     public static bool operator ==(BaseEntity<T>? a, BaseEntity<T>? b)

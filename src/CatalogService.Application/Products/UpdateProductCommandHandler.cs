@@ -10,48 +10,53 @@ namespace CatalogService.Application.Products;
 /// <summary>
 /// Represents a request to update an existing product.
 /// </summary>
-public record UpdateProductCommand : IRequest
+public record UpdateProductCommand : IValidatableObject, IRequest
 {
     /// <summary>
     /// ID of the product to update.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "ID must be positive.")]
     public required int Id { get; init; }
 
     /// <summary>
     /// Optional new name for the product.
     /// </summary>
-    [MaxLength(50)]
     public Optional<string> Name { get; init; }
 
     /// <summary>
     /// Optional new description for the product.
     /// </summary>
-    public Optional<string> Description { get; init; }
+    public Optional<string?> Description { get; init; }
 
     /// <summary>
     /// Optional new URL for the product image.
     /// </summary>
-    [Url]
-    public Optional<Uri> ImageUrl { get; init; }
+    public Optional<Uri?> ImageUrl { get; init; }
 
     /// <summary>
     /// Optional new category ID for the product.
     /// </summary>
-    [Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "Category ID must be positive.")]
     public int? CategoryId { get; init; }
 
     /// <summary>
     /// Optional new price for the product.
     /// </summary>
-    [Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ErrorMessage = "Price must be positive.")]
     public decimal? Price { get; init; }
 
     /// <summary>
     /// Optional new stock amount.
     /// </summary>
-    [Range(0, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "Amount must be positive.")]
     public int? Amount { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Name.HasValue && (string.IsNullOrWhiteSpace(Name.Value) || Name.Value.Length > 50))
+            yield return new ValidationResult("Name is required and cannot exceed 50 characters.", [nameof(Name)]);
+    }
 }
 
 internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, ILogger<UpdateProductCommandHandler>? logger = default)

@@ -2,7 +2,6 @@ using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using CatalogService.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace CatalogService.Infrastructure.Persistence.Repositories;
@@ -57,5 +56,57 @@ internal class ProductRepository(CatalogDbContext context)
             query = query.Take(options.Value.Take.Value);
 
         return await query.AsNoTracking().ToListAsync(cancellationToken);
+    }
+
+    public async override Task AddAsync(Product entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        if (entity.Category?.Id > 0)
+        {
+            Context.Attach(entity.Category);
+        }
+        await DbSet.AddAsync(entity, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task AddRangeAsync(IEnumerable<Product> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities, nameof(entities));
+        var items = entities.Select(entity =>
+        {
+            if (entity.Category?.Id > 0)
+            {
+                Context.Attach(entity.Category);
+            }
+            return entity;
+        });
+        await DbSet.AddRangeAsync(items, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task UpdateAsync(Product entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        if (entity.Category?.Id > 0)
+        {
+            Context.Attach(entity.Category);
+        }
+        DbSet.Update(entity);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task UpdateRangeAsync(IEnumerable<Product> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities, nameof(entities));
+        var items = entities.Select(entity =>
+        {
+            if (entity.Category?.Id > 0)
+            {
+                Context.Attach(entity.Category);
+            }
+            return entity;
+        });
+        DbSet.UpdateRange(items);
+        await Context.SaveChangesAsync(cancellationToken);
     }
 }

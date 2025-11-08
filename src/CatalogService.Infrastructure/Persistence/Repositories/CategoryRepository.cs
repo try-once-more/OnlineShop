@@ -57,4 +57,58 @@ internal class CategoryRepository(CatalogDbContext context)
 
         return await query.AsNoTracking().ToListAsync(cancellationToken);
     }
+
+    public async override Task AddAsync(Category entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        if (entity.ParentCategory?.Id > 0)
+        {
+            DbSet.Attach(entity.ParentCategory);
+        }
+        await DbSet.AddAsync(entity, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task AddRangeAsync(IEnumerable<Category> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities, nameof(entities));
+        var items = entities.Select(entity =>
+        {
+            if (entity.ParentCategory?.Id > 0)
+            {
+                DbSet.Attach(entity.ParentCategory);
+            }
+            return entity;
+        });
+        await DbSet.AddRangeAsync(items, cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task UpdateAsync(Category entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        if (entity.ParentCategory?.Id > 0)
+        {
+            DbSet.Attach(entity.ParentCategory);
+        }
+        DbSet.Update(entity);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async override Task UpdateRangeAsync(IEnumerable<Category> entities, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities, nameof(entities));
+
+        var items = entities.Select(entity =>
+        {
+            if (entity.ParentCategory?.Id > 0)
+            {
+                DbSet.Attach(entity.ParentCategory);
+            }
+            return entity;
+        });
+
+        DbSet.UpdateRange(items);
+        await Context.SaveChangesAsync(cancellationToken);
+    }
 }

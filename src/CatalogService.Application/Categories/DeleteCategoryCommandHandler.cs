@@ -1,5 +1,6 @@
-using CatalogService.Application.Abstractions.Repository;
+﻿using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Exceptions;
+using CatalogService.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
@@ -14,8 +15,14 @@ public record DeleteCategoryCommand : IRequest
     /// <summary>
     /// ID of the category to delete.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "ID must be positive.")]
     public required int Id { get; init; }
+
+    /// <summary>
+    /// If true, deletes the category along with all its child categories and associated products.
+    /// </summary>
+    public bool ForceDelete { get; init; } = false;
 }
 
 internal class DeleteCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteCategoryCommandHandler>? logger = default)
@@ -34,22 +41,59 @@ internal class DeleteCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<Dele
             return;
         }
 
-        var hasChildCategories = await unitOfWork.Categories.ExistsAsync(c => c.ParentCategory.Id == request.Id, cancellationToken);
+        if (request.ForceDelete)
+        {
+            await ForceDeleteCategoryInternalAsync(request.Id, cancellationToken);
+            return;
+        }
+
+        await DeleteCategoryInternalAsync(request.Id, cancellationToken);
+    }
+
+    private async Task ForceDeleteCategoryInternalAsync(int id, CancellationToken cancellationToken)
+    {
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+
+        var categoriesToDelete = await unitOfWork.Categories.ListAsync(
+                new QueryOptions<Category> { Filter = c => c.Id == id || c.ParentCategory.Id == id }, cancellationToken);
+
+        var categoryIds = categoriesToDelete.Select(c => c.Id).ToHashSet();
+
+        logger?.LogInformation("Deleting categories: {CategoryIds}", categoryIds);
+        var productsToDelete = await unitOfWork.Products.ListAsync(
+            new QueryOptions<Product> { Filter = p => categoryIds.Contains(p.Category.Id) }, cancellationToken);
+
+        if (productsToDelete.Any())
+        {
+            var productIds = productsToDelete.Select(p => p.Id);
+            logger?.LogInformation("Deleting products: {ProductIds}", productIds);
+            await unitOfWork.Products.DeleteRangeAsync(productIds, cancellationToken);
+        }
+
+        await unitOfWork.Categories.DeleteRangeAsync(categoryIds, cancellationToken);
+        logger?.LogInformation("Deleted category {CategoryId} along with its subcategories and products.", id);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private async Task DeleteCategoryInternalAsync(int id, CancellationToken cancellationToken)
+    {
+        var hasChildCategories = await unitOfWork.Categories.ExistsAsync(c => c.ParentCategory.Id == id, cancellationToken);
         if (hasChildCategories)
         {
-            logger?.LogWarning("Cannot delete category {CategoryId} because it has child categories", request.Id);
-            throw new CategoryHasChildCategoriesException(request.Id);
+            logger?.LogWarning("Cannot delete category {CategoryId} because it has child categories", id);
+            throw new CategoryHasChildCategoriesException(id);
         }
 
-        var hasProducts = await unitOfWork.Products.ExistsAsync(p => p.Category.Id == category.Id, cancellationToken);
+        var hasProducts = await unitOfWork.Products.ExistsAsync(p => p.Category.Id == id, cancellationToken);
         if (hasProducts)
         {
-            logger?.LogWarning("Cannot delete category {CategoryId} because it has associated products", request.Id);
-            throw new CategoryHasProductsException(request.Id);
+            logger?.LogWarning("Cannot delete category {CategoryId} because it has associated products", id);
+            throw new CategoryHasProductsException(id);
         }
 
-        await unitOfWork.Categories.DeleteAsync(request.Id, cancellationToken);
+        await unitOfWork.Categories.DeleteAsync(id, cancellationToken);
 
-        logger?.LogInformation("Successfully deleted category with ID: {CategoryId}", request.Id);
+        logger?.LogInformation("Successfully deleted category with ID: {CategoryId}", id);
     }
 }

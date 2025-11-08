@@ -4,6 +4,12 @@ namespace CatalogService.Domain.Entities
 {
     public class Category : BaseEntity<int>
     {
+        /// <summary>
+        /// Gets or sets the name of the category.
+        /// </summary>
+        /// <exception cref="CategoryValidationException">
+        /// Thrown if the value is null, whitespace, or exceeds 50 characters.
+        /// </exception>
         public required string Name
         {
             get;
@@ -17,8 +23,21 @@ namespace CatalogService.Domain.Entities
             }
         }
 
+        /// <summary>
+        /// Gets or sets the link to an image representing the category.
+        /// </summary>
         public Uri? ImageUrl { get; set; }
 
+        /// <summary>
+        /// Gets or sets the parent category.
+        /// </summary>
+        /// <remarks>
+        /// A category cannot be its own parent or an ancestor of itself.
+        /// The hierarchy supports up to 2 levels only.
+        /// </remarks>
+        /// <exception cref="CategoryValidationException">
+        /// Thrown if assigning a parent would create a circular reference or exceed the allowed hierarchy depth.
+        /// </exception>
         public Category? ParentCategory
         {
             get;

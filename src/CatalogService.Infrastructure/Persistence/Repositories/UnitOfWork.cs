@@ -7,67 +7,54 @@ namespace CatalogService.Infrastructure.Persistence.Repositories;
 internal class UnitOfWork(CatalogDbContext context, ICategoryRepository categories, IProductRepository products) : IUnitOfWork
 {
     private readonly CatalogDbContext context = context ?? throw new ArgumentNullException(nameof(context));
-    private IDbContextTransaction? transaction;
-    private bool disposed;
 
     public ICategoryRepository Categories { get; private set; } = categories ?? throw new ArgumentNullException(nameof(categories));
 
     public IProductRepository Products { get; private set; } = products ?? throw new ArgumentNullException(nameof(products));
 
-    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+    public async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        if (transaction != null)
-            throw new InvalidOperationException("Transaction already started.");
-
-        transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-    }
-
-    public async Task CommitAsync(CancellationToken cancellationToken = default)
-    {
-        if (transaction == null)
-            throw new InvalidOperationException("No active transaction to commit.");
-
-        try
-        {
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await RollbackAsync(cancellationToken);
-            throw;
-        }
-        finally
-        {
-            await transaction.DisposeAsync();
-            transaction = null;
-        }
-    }
-
-    public async Task RollbackAsync(CancellationToken cancellationToken = default)
-    {
-        if (transaction != null)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            await transaction.DisposeAsync();
-            transaction = null;
-        }
+        var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        return new Transaction(transaction);
     }
 
     public void Dispose()
     {
-        Dispose(true);
+        context.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private class Transaction(IDbContextTransaction transaction) : ITransaction
     {
-        if (!disposed && disposing)
+        private bool completed;
+
+        public async Task CommitAsync(CancellationToken cancellationToken = default)
         {
-            transaction?.Dispose();
-            context.Dispose();
+            if (!completed)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                completed = true;
+            }
         }
 
-        disposed = true;
+        public async Task RollbackAsync(CancellationToken cancellationToken = default)
+        {
+            if (!completed)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                completed = true;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!completed)
+            {
+                await transaction.RollbackAsync();
+                completed = true;
+            }
+
+            await transaction.DisposeAsync();
+        }
     }
 }

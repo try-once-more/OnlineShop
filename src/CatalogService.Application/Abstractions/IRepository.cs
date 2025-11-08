@@ -11,12 +11,13 @@ public interface ISort<TEntity>
     IOrderedQueryable<TEntity> Apply(IQueryable<TEntity> query, IOrderedQueryable<TEntity>? orderedQuery = null);
 }
 
-public readonly record struct QueryOptions<TEntity>(
-    Expression<Func<TEntity, bool>>? Filter = null,
-    IReadOnlyList<ISort<TEntity>>? OrderBy = null,
-    int? Skip = null,
-    int? Take = null
-);
+public readonly record struct QueryOptions<TEntity>
+{
+    public Expression<Func<TEntity, bool>>? Filter { get; init; }
+    public IReadOnlyList<ISort<TEntity>>? OrderBy { get; init; }
+    public int? Skip { get; init; }
+    public int? Take { get; init; }
+};
 
 public interface IRepository<TEntity, TKey>
     where TEntity : BaseEntity<TKey>

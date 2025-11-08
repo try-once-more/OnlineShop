@@ -2,16 +2,27 @@ using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Infrastructure.Persistence.Data;
 using CatalogService.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+public record CatalogDatabaseSettings
+{
+    public string? CatalogDatabase { get; set; }
+}
+
 public static class DependencyInjection
 {
-    public static IServiceCollection AddCatalogServiceInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddCatalogServiceInfrastructure(this IServiceCollection services)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+        services.AddDbContext<CatalogDbContext>((provider, options) =>
+        {
+            var dbSettings = provider.GetRequiredService<IOptions<CatalogDatabaseSettings>>().Value;
+            if (string.IsNullOrWhiteSpace(dbSettings?.CatalogDatabase))
+                throw new InvalidOperationException("'CatalogDatabase' connection string is not configured.");
 
-        services.AddDbContext<CatalogDbContext>(options => options.UseSqlServer(connectionString));
+            options.UseSqlServer(dbSettings.CatalogDatabase);
+        });
         services.AddScoped<DbContext>(provider => provider.GetRequiredService<CatalogDbContext>());
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();

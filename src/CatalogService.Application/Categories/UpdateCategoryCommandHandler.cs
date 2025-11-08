@@ -10,31 +10,36 @@ namespace CatalogService.Application.Categories;
 /// <summary>
 /// Represents a request to update an existing category.
 /// </summary>
-public record UpdateCategoryCommand : IRequest
+public record UpdateCategoryCommand : IValidatableObject, IRequest
 {
     /// <summary>
     /// ID of the category to update.
     /// </summary>
-    [Required, Range(1, int.MaxValue)]
+    [Required(ErrorMessage = "ID is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "ID must be positive.")]
     public required int Id { get; init; }
 
     /// <summary>
     /// Optional new name for the category.
     /// </summary>
-    [MaxLength(50)]
     public Optional<string> Name { get; init; }
 
     /// <summary>
     /// Optional URL for the category image.
     /// </summary>
-    [Url]
-    public Optional<Uri> ImageUrl { get; init; }
+    public Optional<Uri?> ImageUrl { get; init; }
 
     /// <summary>
     /// Optional parent category ID.
     /// </summary>
-    [Range(1, int.MaxValue)]
+    [Range(1, int.MaxValue, ErrorMessage = "Parent category ID must be positive.")]
     public int? ParentCategoryId { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Name.HasValue && (string.IsNullOrWhiteSpace(Name.Value) || Name.Value.Length > 50))
+            yield return new ValidationResult("Name is required and cannot exceed 50 characters.", [nameof(Name)]);
+    }
 }
 
 
@@ -57,10 +62,8 @@ internal class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, ILogger<Upda
             existing.ImageUrl = request.ImageUrl.Value;
 
         if (request.ParentCategoryId.HasValue)
-        {
             existing.ParentCategory = await unitOfWork.Categories.GetAsync(request.ParentCategoryId.Value, cancellationToken)
-                ?? throw new CategoryNotFoundException(request.ParentCategoryId.Value);
-        }
+                    ?? throw new CategoryNotFoundException(request.ParentCategoryId.Value);
 
         await unitOfWork.Categories.UpdateAsync(existing, cancellationToken);
 

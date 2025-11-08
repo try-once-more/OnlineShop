@@ -29,12 +29,12 @@ public class UnitOfWorkTests(DatabaseFixture fixture) : IClassFixture<DatabaseFi
     [Fact]
     public async Task CommitAsync_ShouldPersistChanges()
     {
-        await unitOfWork.BeginTransactionAsync();
+        await using var transaction = await unitOfWork.BeginTransactionAsync();
 
         var category = new Category { Name = "CommitTest" };
         await unitOfWork.Categories.AddAsync(category);
 
-        await unitOfWork.CommitAsync();
+        await transaction.CommitAsync();
 
         var saved = await unitOfWork.Categories.GetAsync(category.Id);
         Assert.NotNull(saved);
@@ -44,12 +44,25 @@ public class UnitOfWorkTests(DatabaseFixture fixture) : IClassFixture<DatabaseFi
     [Fact]
     public async Task RollbackAsync_ShouldNotPersistChanges()
     {
-        await unitOfWork.BeginTransactionAsync();
+        await using var transaction = await unitOfWork.BeginTransactionAsync();
 
         var category = new Category { Name = "RollbackTest" };
         await unitOfWork.Categories.AddAsync(category);
 
-        await unitOfWork.RollbackAsync();
+        await transaction.RollbackAsync();
+
+        var saved = await unitOfWork.Categories.GetAsync(category.Id);
+        Assert.Null(saved);
+    }
+
+    [Fact]
+    public async Task Transaction_DisposeAsync_ShouldRollbackChanges()
+    {
+        var category = new Category { Name = "RollbackTest" };
+        await using (var transaction = await unitOfWork.BeginTransactionAsync())
+        {
+            await unitOfWork.Categories.AddAsync(category);
+        }
 
         var saved = await unitOfWork.Categories.GetAsync(category.Id);
         Assert.Null(saved);

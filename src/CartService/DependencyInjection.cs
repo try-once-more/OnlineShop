@@ -2,8 +2,14 @@
 using CartService.Application.Services;
 using CartService.Infrastructure;
 using LiteDB;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
+
+public record CartDatabaseSettings
+{
+    public string? CartDatabase { get; set; }
+}
 
 public static class DependencyInjection
 {
@@ -13,16 +19,16 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddCartServiceInfrastructure(this IServiceCollection services, string dbPath)
+    public static IServiceCollection AddCartServiceInfrastructure(this IServiceCollection services)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(dbPath);
-        var dbDirectory = Path.GetDirectoryName(dbPath);
-        if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+        services.AddSingleton<ILiteDatabase>(provider =>
         {
-            Directory.CreateDirectory(dbDirectory);
-        }
+            var dbSettings = provider.GetRequiredService<IOptions<CartDatabaseSettings>>().Value;
+            if (string.IsNullOrWhiteSpace(dbSettings?.CartDatabase))
+                throw new InvalidOperationException("'CartDatabase' connection string is not configured.");
 
-        services.AddSingleton<ILiteDatabase>(new LiteDatabase(dbPath));
+            return new LiteDatabase(dbSettings.CartDatabase);
+        });
         services.AddScoped<ICartRepository, LiteCartRepository>();
         return services;
     }

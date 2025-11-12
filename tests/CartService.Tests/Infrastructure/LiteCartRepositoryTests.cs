@@ -1,29 +1,32 @@
+using CartService.Application.Abstractions;
 using CartService.Application.Entities;
-using CartService.Infrastructure;
 using LiteDB;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CartService.Tests.Infrastructure;
 
 public class LiteCartRepositoryFixture : IAsyncLifetime
 {
-    private string dbPath;
-    internal ILiteDatabase Database { get; private set; }
-    internal LiteCartRepository Repository { get; private set; }
+    private readonly string dbPath = Path.Combine(Path.GetTempPath(), $"{nameof(LiteCartRepositoryTests)}.db");
 
-    public Task InitializeAsync()
+    public ServiceProvider ServiceProvider { get; private set; }
+
+    public LiteCartRepositoryFixture()
     {
-        dbPath = Path.Combine(Path.GetTempPath(), $"{nameof(LiteCartRepositoryTests)}.db");
-        Database = new LiteDatabase(dbPath);
-        Repository = new LiteCartRepository(Database);
-        return Task.CompletedTask;
+        ServiceProvider = new ServiceCollection()
+            .Configure<CartDatabaseSettings>(options => options.CartDatabase = dbPath)
+            .AddCartServiceInfrastructure()
+            .BuildServiceProvider();
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
 
     public Task DisposeAsync()
     {
-        Database?.Dispose();
         if (File.Exists(dbPath))
             File.Delete(dbPath);
-        return Task.CompletedTask;
+
+        return ServiceProvider.DisposeAsync().AsTask();
     }
 }
 
@@ -31,19 +34,27 @@ public class LiteCartRepositoryFixture : IAsyncLifetime
 public class LiteCartRepositoryTests(LiteCartRepositoryFixture fixture)
     : IAsyncLifetime, IClassFixture<LiteCartRepositoryFixture>
 {
+    private readonly IServiceScope scope = fixture.ServiceProvider.CreateScope();
+    private ICartRepository categoryRepository;
+
     public Task InitializeAsync()
     {
-        fixture.Database.GetCollection<Cart>("carts").DeleteAll();
+        categoryRepository = scope.ServiceProvider.GetRequiredService<ICartRepository>();
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public Task DisposeAsync()
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ILiteDatabase>();
+        db.GetCollection<Cart>("carts").DeleteAll();
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task GetAsync_WhenCartDoesNotExist_ShouldReturnNull()
     {
         var cartId = Guid.NewGuid();
-        var cart = await fixture.Repository.GetAsync(cartId);
+        var cart = await categoryRepository.GetAsync(cartId);
         Assert.Null(cart);
     }
 
@@ -52,8 +63,8 @@ public class LiteCartRepositoryTests(LiteCartRepositoryFixture fixture)
     {
         var emptyCart = TestHelper.CreateCartWithRandomItems(0);
 
-        await fixture.Repository.SaveAsync(emptyCart);
-        var actualCart = await fixture.Repository.GetAsync(emptyCart.Id);
+        await categoryRepository.SaveAsync(emptyCart);
+        var actualCart = await categoryRepository.GetAsync(emptyCart.Id);
 
         Assert.NotNull(actualCart);
         Assert.Empty(actualCart.Items);
@@ -66,8 +77,8 @@ public class LiteCartRepositoryTests(LiteCartRepositoryFixture fixture)
     {
         var expectedCart = TestHelper.CreateCartWithRandomItems(itemCount);
 
-        await fixture.Repository.SaveAsync(expectedCart);
-        var actualCart = await fixture.Repository.GetAsync(expectedCart.Id);
+        await categoryRepository.SaveAsync(expectedCart);
+        var actualCart = await categoryRepository.GetAsync(expectedCart.Id);
 
         Assert.NotNull(actualCart);
         Assert.Equal(expectedCart.Id, actualCart.Id);
@@ -90,13 +101,13 @@ public class LiteCartRepositoryTests(LiteCartRepositoryFixture fixture)
     public async Task SaveAsync_WhenCartExists_ShouldUpdateItems()
     {
         var expectedCart = TestHelper.CreateCartWithRandomItems(3);
-        await fixture.Repository.SaveAsync(expectedCart);
+        await categoryRepository.SaveAsync(expectedCart);
 
         expectedCart = TestHelper.CreateCartWithRandomItems(expectedCart.Id, 2);
 
-        await fixture.Repository.SaveAsync(expectedCart);
+        await categoryRepository.SaveAsync(expectedCart);
 
-        var actualCart = await fixture.Repository.GetAsync(expectedCart.Id);
+        var actualCart = await categoryRepository.GetAsync(expectedCart.Id);
 
         Assert.NotNull(actualCart);
         Assert.Equal(expectedCart.Items.Count, actualCart.Items.Count);

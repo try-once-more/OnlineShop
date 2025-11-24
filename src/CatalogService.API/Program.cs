@@ -11,10 +11,10 @@ using CatalogService.Application.Products;
 using CatalogService.Domain.Entities;
 using Mapster;
 using MapsterMapper;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +39,7 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.AllowTrailingCommas = true;
     options.JsonSerializerOptions.WriteIndented = true;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;;
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; ;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
@@ -112,27 +112,70 @@ static void AddOpenApi(IServiceCollection services)
 
         options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UpdateCategoryCommand), () => new OpenApiSchema
         {
-            Type = "object",
-            Properties = new Dictionary<string, OpenApiSchema>(StringComparer.OrdinalIgnoreCase)
+            Type = JsonSchemaType.Object,
+            Properties = new Dictionary<string, IOpenApiSchema>(StringComparer.OrdinalIgnoreCase)
             {
-                ["name"] = new OpenApiSchema { Type = "string", Nullable = true, MinLength = 1, MaxLength = 50 },
-                ["imageUrl"] = new OpenApiSchema { Type = "string", Format = "uri", Nullable = true, Example = new OpenApiString("https://example.com/image.jpg") },
-                ["parentCategoryId"] = new OpenApiSchema { Type = "integer", Format = "int32", Nullable = true, Minimum = 1 }
+                ["name"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String | JsonSchemaType.Null,
+                    MinLength = 1,
+                    MaxLength = 50
+                },
+                ["imageUrl"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String | JsonSchemaType.Null,
+                    Format = "uri",
+                    Default = JsonValue.Create("https://example.com/image.jpg")
+                },
+                ["parentCategoryId"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
+                    Format = "int32",
+                    Minimum = "1"
+                }
             },
             Required = new HashSet<string>()
         });
 
         options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UpdateProductCommand), () => new OpenApiSchema
         {
-            Type = "object",
-            Properties = new Dictionary<string, OpenApiSchema>(StringComparer.OrdinalIgnoreCase)
+            Type = JsonSchemaType.Object,
+            Properties = new Dictionary<string, IOpenApiSchema>(StringComparer.OrdinalIgnoreCase)
             {
-                ["name"] = new OpenApiSchema { Type = "string", Nullable = true, MinLength = 1, MaxLength = 50 },
-                ["description"] = new OpenApiSchema { Type = "string", Nullable = true },
-                ["imageUrl"] = new OpenApiSchema { Type = "string", Format = "uri", Nullable = true, Example = new OpenApiString("https://example.com/image.jpg") },
-                ["categoryId"] = new OpenApiSchema { Type = "integer", Format = "int32", Nullable = true, Minimum = 1 },
-                ["price"] = new OpenApiSchema { Type = "number", Format = "decimal", Nullable = true, Minimum = 0.01m },
-                ["amount"] = new OpenApiSchema { Type = "integer", Format = "int32", Nullable = true, Minimum = 1 }
+                ["name"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String | JsonSchemaType.Null,
+                    MinLength = 1,
+                    MaxLength = 50
+                },
+                ["description"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String | JsonSchemaType.Null
+                },
+                ["imageUrl"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String | JsonSchemaType.Null,
+                    Format = "uri",
+                    Example = JsonValue.Create("https://example.com/image.jpg")
+                },
+                ["categoryId"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
+                    Format = "int32",
+                    Minimum = "1"
+                },
+                ["price"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Number | JsonSchemaType.Null,
+                    Format = "decimal",
+                    Minimum = "0.01"
+                },
+                ["amount"] = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
+                    Format = "int32",
+                    Minimum = "1"
+                }
             },
             Required = new HashSet<string>()
         });

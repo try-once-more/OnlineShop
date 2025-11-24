@@ -23,7 +23,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnType("nvarchar(max)");
 
         builder.Property(p => p.ImageUrl)
-            .HasConversion(x => x != null ? x.ToString() : null, x => x != null ? new Uri(x) : null)
+            .HasConversion(x => x != null ? x.ToString() : null, x => x != null ? new Uri(x, UriKind.RelativeOrAbsolute) : null)
             .HasMaxLength(500);
 
         builder.Property(p => p.Price)

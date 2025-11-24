@@ -20,7 +20,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .HasMaxLength(50);
 
         builder.Property(c => c.ImageUrl)
-            .HasConversion(x => x != null ? x.ToString() : null, x => x != null ? new Uri(x) : null)
+            .HasConversion(x => x != null ? x.ToString() : null, x => x != null ? new Uri(x, UriKind.RelativeOrAbsolute) : null)
             .HasMaxLength(500);
 
         builder.HasOne(c => c.ParentCategory)

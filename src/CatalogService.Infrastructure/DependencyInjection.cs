@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public record CatalogDatabaseSettings
 {
-    public string? CatalogDatabase { get; set; }
+    public required string CatalogDatabase { get; set; }
 }
 
 public static class DependencyInjection
@@ -18,7 +18,7 @@ public static class DependencyInjection
         services.AddDbContext<CatalogDbContext>((provider, options) =>
         {
             var dbSettings = provider.GetRequiredService<IOptions<CatalogDatabaseSettings>>().Value;
-            if (string.IsNullOrWhiteSpace(dbSettings?.CatalogDatabase))
+            if (string.IsNullOrWhiteSpace(dbSettings.CatalogDatabase))
                 throw new InvalidOperationException("'CatalogDatabase' connection string is not configured.");
 
             options.UseSqlServer(dbSettings.CatalogDatabase);
@@ -26,7 +26,9 @@ public static class DependencyInjection
         services.AddScoped<DbContext>(provider => provider.GetRequiredService<CatalogDbContext>());
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         return services;
     }
 }

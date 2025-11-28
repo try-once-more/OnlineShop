@@ -9,6 +9,7 @@ internal class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : Db
 
     internal DbSet<Category> Categories => Set<Category>();
     internal DbSet<Product> Products => Set<Product>();
+    internal DbSet<Event> Events => Set<Event>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

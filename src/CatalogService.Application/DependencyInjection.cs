@@ -1,7 +1,7 @@
 using CatalogService.Application.Abstractions;
 using CatalogService.Application.Events;
 using CatalogService.Application.Pipeline;
-using CatalogService.Application.Products.Events;
+using CatalogService.Events.Products;
 using Eventing.Abstraction;
 
 namespace Microsoft.Extensions.DependencyInjection;

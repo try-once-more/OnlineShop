@@ -1,8 +1,8 @@
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Events;
 using CatalogService.Application.Exceptions;
-using CatalogService.Application.Products.Events;
 using CatalogService.Domain.Entities;
+using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;

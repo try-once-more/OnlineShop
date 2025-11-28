@@ -1,10 +1,10 @@
 ﻿using Eventing.Abstraction;
 
-namespace CatalogService.Application.Products.Events;
+namespace CatalogService.Events.Products;
 
-public sealed record ProductUpdatedEvent : BaseEvent
+public sealed record ProductCreatedEvent : BaseEvent
 {
-    public const string EventName = "ProductUpdated";
+    public const string EventName = "ProductCreated";
 
     public required int Id { get; init; }
     public required string Name { get; init; }
@@ -14,5 +14,5 @@ public sealed record ProductUpdatedEvent : BaseEvent
     public string? Description { get; init; }
     public Uri? ImageUrl { get; init; }
 
-    public ProductUpdatedEvent() : base(EventName) { }
+    public ProductCreatedEvent() : base(EventName) { }
 }

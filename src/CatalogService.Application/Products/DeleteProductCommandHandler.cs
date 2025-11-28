@@ -1,6 +1,6 @@
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Events;
-using CatalogService.Application.Products.Events;
+using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;

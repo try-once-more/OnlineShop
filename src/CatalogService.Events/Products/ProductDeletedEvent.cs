@@ -1,6 +1,6 @@
 ﻿using Eventing.Abstraction;
 
-namespace CatalogService.Application.Products.Events;
+namespace CatalogService.Events.Products;
 
 public sealed record ProductDeletedEvent : BaseEvent
 {

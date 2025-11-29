@@ -1,6 +1,6 @@
 ﻿using CatalogService.Application.Abstractions;
 
-internal sealed class EventProcessor(IServiceProvider services, ILogger<EventProcessor> logger) : BackgroundService
+internal sealed class EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -8,7 +8,7 @@ internal sealed class EventProcessor(IServiceProvider services, ILogger<EventPro
         {
             try
             {
-                using var scope = services.CreateScope();
+                using var scope = scopeFactory.CreateScope();
                 var processor = scope.ServiceProvider.GetRequiredService<IEventPublisherService>();
                 await processor.PublishPendingAsync(cancellationToken: cancellationToken);
             }

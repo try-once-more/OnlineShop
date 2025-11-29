@@ -21,10 +21,9 @@ internal sealed class EventSubscriberFactory(IServiceProvider serviceProvider) :
             var client = serviceProvider.GetRequiredService<ServiceBusClient>();
             var options = serviceProvider.GetRequiredService<EventingProcessorOptions>();
             var converter = serviceProvider.GetRequiredService<IEventConverter>();
-            var dispatcher = serviceProvider.GetRequiredService<EventDispatcher>();
             var logger = serviceProvider.GetService<ILogger<EventSubscriberClient>>();
 
-            return new EventSubscriberClient(client, key.Topic, key.Subscription, options, converter, dispatcher, logger);
+            return new EventSubscriberClient(client, key.Topic, key.Subscription, options, converter, logger);
         }, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
     }
 

@@ -58,7 +58,6 @@ public static class DependencyInjection
             });
         });
 
-        services.AddSingleton<EventDispatcher>();
         services.AddSingleton<EventConverter>();
         services.AddSingleton<IEventConverter>(sp =>
         {

@@ -1,15 +1,16 @@
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using static Microsoft.Extensions.DependencyInjection.EventingOptions;
 
 namespace Eventing.Infrastructure.ServiceBus;
 
 internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisposable
 {
+    private readonly ConcurrentDictionary<Type, IEventHandlerInvoker> handlers = [];
     private readonly Lazy<ServiceBusProcessor> processor;
     private readonly IEventConverter eventConverter;
-    private readonly EventDispatcher dispatcher;
     private readonly ILogger<IEventSubscriberClient>? logger;
 
     public EventSubscriberClient(
@@ -18,11 +19,9 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
         string subscriptionName,
         EventingProcessorOptions processorOptions,
         IEventConverter eventConverter,
-        EventDispatcher dispatcher,
         ILogger<IEventSubscriberClient>? logger = default)
     {
         this.eventConverter = eventConverter;
-        this.dispatcher = dispatcher;
         this.logger = logger;
 
         processor = new Lazy<ServiceBusProcessor>(() =>
@@ -51,10 +50,23 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
     }
 
     public void RegisterHandler<T>(IEventHandler<T> handler) where T : BaseEvent
-        => dispatcher.Register(handler);
+    {
+        var type = handler.GetType();
+        if (!handlers.TryAdd(type, new EventHandlerInvoker<T>(handler)))
+        {
+            logger?.LogError("Handler for {Type} already registered.", type.Name);
+            throw new InvalidOperationException($"Handler for {type.Name} already registered.");
+        }
+
+        logger?.LogInformation("Registered handler for {Type}", type.Name);
+    }
 
     public void UnregisterHandler<T>() where T : BaseEvent
-        => dispatcher.Unregister<T>();
+    {
+        var type = typeof(T);
+        handlers.TryRemove(type, out _);
+        logger?.LogInformation("Unregistered handler for {Type}", type.Name);
+    }
 
     private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
     {
@@ -70,10 +82,20 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
                 return;
             }
 
-            logger?.LogDebug("Dispatching event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
-            await dispatcher.DispatchAsync(@event, args.CancellationToken);
+            logger?.LogDebug("Processing event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
 
-            logger?.LogDebug("Completed processing event with MessageId={MessageId}", messageId);
+            var type = @event.GetType();
+            if (handlers.TryGetValue(type, out var invoker))
+            {
+                await invoker.InvokeAsync(@event, args.CancellationToken);
+                logger?.LogDebug("Processing event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
+            }
+            else
+            {
+                logger?.LogWarning("Unable to process event {EventType} with MessageId={MessageId}. No handler registered for {Type}",
+                    @event.EventType, messageId, type.Name);
+            }
+
             await args.CompleteMessageAsync(args.Message);
         }
         catch (Exception ex)
@@ -97,5 +119,16 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
             processor.Value.ProcessMessageAsync -= ProcessMessageAsync;
             await processor.Value.DisposeAsync();
         }
+    }
+
+    private interface IEventHandlerInvoker
+    {
+        Task InvokeAsync(BaseEvent @event, CancellationToken cancellationToken);
+    }
+
+    private class EventHandlerInvoker<T>(IEventHandler<T> handler) : IEventHandlerInvoker where T : BaseEvent
+    {
+        public Task InvokeAsync(BaseEvent @event, CancellationToken cancellationToken)
+            => handler.HandleAsync((T)@event, cancellationToken);
     }
 }

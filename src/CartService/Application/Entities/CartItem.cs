@@ -2,6 +2,13 @@
 
 public record class ImageInfo(Uri Url, string AltText = "");
 
+public enum CartItemStatus
+{
+    Discontinued = -1,
+    OutOfStock = 0,
+    Available = 1
+}
+
 public class CartItem : BaseEntity<int>
 {
     public required string Name
@@ -41,4 +48,6 @@ public class CartItem : BaseEntity<int>
     } = 1;
 
     public ImageInfo? Image { get; set; }
+
+    public CartItemStatus Status { get; set; } = CartItemStatus.Available;
 }

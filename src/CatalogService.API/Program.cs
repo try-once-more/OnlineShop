@@ -39,7 +39,7 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.AllowTrailingCommas = true;
     options.JsonSerializerOptions.WriteIndented = true;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; ;
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 

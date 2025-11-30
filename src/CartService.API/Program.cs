@@ -56,8 +56,12 @@ builder.Services.AddHealthChecks();
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 
 builder.Services.Configure<CartDatabaseSettings>(builder.Configuration.GetSection("ConnectionStrings"));
+builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
+builder.Services.Configure<CartItemEventOptions>(builder.Configuration.GetSection("Eventing:CartService"));
 builder.Services.AddCartServiceInfrastructure();
 builder.Services.AddCartServiceApplication();
+builder.Services.AddEventing();
+builder.Services.AddHostedService<EventProcessor>();
 AddMapper(builder.Services);
 
 var app = builder.Build();

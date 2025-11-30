@@ -5,6 +5,7 @@ namespace CatalogService.Application.Abstractions.Repository;
 
 public interface ICategoryRepository : IRepository<Category, int>;
 public interface IProductRepository : IRepository<Product, int>;
+public interface IEventRepository : IRepository<Event, Guid>;
 
 public interface ISort<TEntity>
 {

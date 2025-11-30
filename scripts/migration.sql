@@ -73,7 +73,45 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [catalog].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251026074958_InitialCreate', N'9.0.10');
+    VALUES (N'20251026074958_InitialCreate', N'10.0.0');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [catalog].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251124193706_AddEventing'
+)
+BEGIN
+    CREATE TABLE [catalog].[Events] (
+        [Id] uniqueidentifier NOT NULL,
+        [OccurredAtUtc] datetime2 NOT NULL,
+        [EventType] nvarchar(max) NOT NULL,
+        [Payload] nvarchar(max) NOT NULL,
+        [Processed] bit NOT NULL,
+        [ProcessedAtUtc] datetime2 NULL,
+        [Error] nvarchar(max) NULL,
+        CONSTRAINT [PK_Events] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [catalog].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251124193706_AddEventing'
+)
+BEGIN
+    CREATE INDEX [IX_Events_Processed] ON [catalog].[Events] ([Processed]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [catalog].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251124193706_AddEventing'
+)
+BEGIN
+    INSERT INTO [catalog].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20251124193706_AddEventing', N'10.0.0');
 END;
 
 COMMIT;

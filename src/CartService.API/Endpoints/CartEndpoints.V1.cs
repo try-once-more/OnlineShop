@@ -125,6 +125,11 @@ public class CartItemResponse
     /// Optional image information associated with the item.
     /// </summary>
     public ImageInfoResponse? Image { get; set; }
+
+    /// <summary>
+    /// The current status of the item.
+    /// </summary>
+    public CartItemStatus Status { get; set; }
 }
 
 /// <summary>

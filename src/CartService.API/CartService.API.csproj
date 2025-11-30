@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CartService\CartService.csproj" />
+    <ProjectReference Include="..\Eventing.Infrastructure\Eventing.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

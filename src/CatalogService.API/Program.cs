@@ -6,9 +6,12 @@ using CatalogService.API.Middleware;
 using CatalogService.API.Products;
 using CatalogService.API.Products.V1;
 using CatalogService.API.Versions;
+using CatalogService.Application;
 using CatalogService.Application.Categories;
 using CatalogService.Application.Products;
 using CatalogService.Domain.Entities;
+using CatalogService.Infrastructure;
+using Eventing.Infrastructure;
 using Mapster;
 using MapsterMapper;
 using Microsoft.OpenApi;
@@ -39,7 +42,7 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.AllowTrailingCommas = true;
     options.JsonSerializerOptions.WriteIndented = true;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; ;
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
@@ -53,9 +56,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 
-builder.Services.Configure<CatalogDatabaseSettings>(builder.Configuration.GetSection("ConnectionStrings"));
+builder.Services.Configure<CatalogDatabaseOptions>(builder.Configuration.GetSection("ConnectionStrings"));
+builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
+builder.Services.Configure<CatalogPublisherOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
+
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
+builder.Services.AddEventing();
+builder.Services.AddHostedService<EventProcessor>();
 
 AddMapper(builder.Services);
 AddOpenApi(builder.Services);

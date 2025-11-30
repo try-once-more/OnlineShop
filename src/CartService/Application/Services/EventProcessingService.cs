@@ -16,7 +16,7 @@ internal class EventProcessingService(
     private readonly Lazy<IEventSubscriberClient> subscriber = new(() =>
     {
         var eventSubscriberFactory = serviceProvider.GetRequiredService<IEventSubscriberFactory>();
-        var options = serviceProvider.GetRequiredService<IOptions<CartItemEventOptions>>();
+        var options = serviceProvider.GetRequiredService<IOptions<CartSubscriberOptions>>();
         var client = eventSubscriberFactory.GetClient(options.Value.TopicName, options.Value.SubscriptionName);
         return client;
     }, LazyThreadSafetyMode.ExecutionAndPublication);

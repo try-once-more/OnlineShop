@@ -20,7 +20,7 @@ public class DatabaseFixture : IAsyncLifetime
             .Build();
 
         var services = new ServiceCollection();
-        services.Configure<CatalogDatabaseSettings>(configuration.GetSection("ConnectionStrings"));
+        services.Configure<CatalogDatabaseOptions>(configuration.GetSection("ConnectionStrings"));
         services.AddCatalogServiceInfrastructure();
         ServiceProvider = services.BuildServiceProvider();
     }

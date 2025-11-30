@@ -6,12 +6,6 @@ using Eventing.Abstraction;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public record CatalogEventOptions
-{
-    internal bool IsEnabled => !string.IsNullOrWhiteSpace(TopicName);
-    public required string TopicName { get; init; }
-};
-
 public static class DependencyInjection
 {
     public static IServiceCollection AddCatalogServiceApplication(this IServiceCollection services)

@@ -4,7 +4,6 @@ using CatalogService.Application.Exceptions;
 using CatalogService.Domain.Entities;
 using CatalogService.Events.Products;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
@@ -63,7 +62,7 @@ public record UpdateProductCommand : IValidatableObject, IRequest
     }
 }
 
-internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<UpdateProductCommandHandler>? logger = default)
+internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<UpdateProductCommandHandler>? logger = default)
     : IRequestHandler<UpdateProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

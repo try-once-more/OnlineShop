@@ -3,7 +3,7 @@ using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using static Microsoft.Extensions.DependencyInjection.EventingOptions;
+using static Eventing.Infrastructure.EventingOptions;
 
 namespace Eventing.Infrastructure.ServiceBus;
 

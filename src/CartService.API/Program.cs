@@ -1,7 +1,10 @@
 using CartService.API;
 using CartService.API.Endpoints;
 using CartService.API.Middlewares;
+using CartService.Application;
 using CartService.Application.Entities;
+using CartService.Infrastructure;
+using Eventing.Infrastructure;
 using Mapster;
 using MapsterMapper;
 using System.Reflection;
@@ -55,9 +58,9 @@ builder.Services.AddHealthChecks();
 
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 
-builder.Services.Configure<CartDatabaseSettings>(builder.Configuration.GetSection("ConnectionStrings"));
+builder.Services.Configure<CartDatabaseOptions>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
-builder.Services.Configure<CartItemEventOptions>(builder.Configuration.GetSection("Eventing:CartService"));
+builder.Services.Configure<CartSubscriberOptions>(builder.Configuration.GetSection("Eventing:CartService"));
 builder.Services.AddCartServiceInfrastructure();
 builder.Services.AddCartServiceApplication();
 builder.Services.AddEventing();

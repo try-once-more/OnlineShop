@@ -2,7 +2,6 @@ using CatalogService.Application.Abstractions;
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using Eventing.Abstraction;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -11,7 +10,7 @@ namespace CatalogService.Application.Events;
 internal sealed class EventPublisherService(
     IUnitOfWork unitOfWork,
     IEventPublisherFactory eventPublisherFactory,
-    IOptions<CatalogEventOptions> options,
+    IOptions<CatalogPublisherOptions> options,
     ILogger<EventPublisherService>? logger = default)
     : IEventPublisherService
 {

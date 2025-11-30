@@ -3,7 +3,6 @@ using CatalogService.Application.Exceptions;
 using CatalogService.Domain.Entities;
 using CatalogService.Events.Products;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
@@ -55,7 +54,7 @@ public record AddProductCommand : IRequest<Product>
     public required int Amount { get; init; }
 }
 
-internal class AddProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<AddProductCommandHandler>? logger = default)
+internal class AddProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<AddProductCommandHandler>? logger = default)
     : IRequestHandler<AddProductCommand, Product>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

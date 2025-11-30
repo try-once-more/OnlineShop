@@ -1,7 +1,6 @@
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Events.Products;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
@@ -21,7 +20,7 @@ public record DeleteProductCommand : IRequest
     public required int Id { get; init; }
 }
 
-internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<DeleteProductCommandHandler>? logger = default)
+internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<DeleteProductCommandHandler>? logger = default)
     : IRequestHandler<DeleteProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));

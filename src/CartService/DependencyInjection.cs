@@ -9,17 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public record CartDatabaseSettings
-{
-    public required string CartDatabase { get; set; }
-}
-
-public record CartItemEventOptions
-{
-    public required string TopicName { get; init; }
-    public required string SubscriptionName { get; init; }
-};
-
 public static class DependencyInjection
 {
     public static IServiceCollection AddCartServiceApplication(this IServiceCollection services)
@@ -50,7 +39,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ILiteDatabase>(provider =>
         {
-            var dbSettings = provider.GetRequiredService<IOptions<CartDatabaseSettings>>().Value;
+            var dbSettings = provider.GetRequiredService<IOptions<CartDatabaseOptions>>().Value;
             if (string.IsNullOrWhiteSpace(dbSettings.CartDatabase))
                 throw new InvalidOperationException("'CartDatabase' connection string is not configured.");
 

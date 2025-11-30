@@ -1,5 +1,6 @@
 using CartService.Application.Abstractions;
 using CartService.Application.Entities;
+using CartService.Infrastructure;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +15,7 @@ public class LiteCartRepositoryFixture : IAsyncLifetime
     public LiteCartRepositoryFixture()
     {
         ServiceProvider = new ServiceCollection()
-            .Configure<CartDatabaseSettings>(options => options.CartDatabase = dbPath)
+            .Configure<CartDatabaseOptions>(options => options.CartDatabase = dbPath)
             .AddCartServiceInfrastructure()
             .BuildServiceProvider();
     }

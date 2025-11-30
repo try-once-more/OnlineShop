@@ -2,9 +2,10 @@
 
 namespace CatalogService.Events.Products;
 
+[EventType(EventName)]
 public sealed record ProductDeletedEvent : BaseEvent
 {
-    public const string EventName = "ProductDeleted";
+    private const string EventName = "catalogservice.product.deleted";
 
     public required int Id { get; init; }
 

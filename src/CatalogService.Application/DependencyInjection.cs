@@ -6,8 +6,9 @@ using Eventing.Abstraction;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public record CatalogEventingOptions
+public record CatalogEventOptions
 {
+    internal bool IsEnabled => !string.IsNullOrWhiteSpace(TopicName);
     public required string TopicName { get; init; }
 };
 
@@ -22,7 +23,6 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
-        services.AddSingleton<CatalogEventingService>();
         services.AddScoped<IEventPublisherService, EventPublisherService>();
 
         services.AddSingleton<BaseEvent, ProductCreatedEvent>();

@@ -1,8 +1,9 @@
 using CatalogService.Application.Abstractions.Repository;
-using CatalogService.Application.Events;
 using CatalogService.Events.Products;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
@@ -20,7 +21,7 @@ public record DeleteProductCommand : IRequest
     public required int Id { get; init; }
 }
 
-internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingService eventingService, ILogger<DeleteProductCommandHandler>? logger = default)
+internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<DeleteProductCommandHandler>? logger = default)
     : IRequestHandler<DeleteProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -29,7 +30,7 @@ internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventi
     {
         logger?.LogDebug("Deleting product with ID: {ProductId}", request.Id);
 
-        if (eventingService.IsEnabled)
+        if (options.Value.IsEnabled)
         {
             await DeleteProductAndQueueEvent(request, cancellationToken);
         }
@@ -43,10 +44,10 @@ internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventi
 
     private async Task DeleteProductAndQueueEvent(DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        var @event = eventingService.ToEventEntity(new ProductDeletedEvent
+        var @event = new ProductDeletedEvent
         {
             Id = request.Id
-        });
+        }.ToEventEntity();
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         await unitOfWork.Products.DeleteAsync(request.Id, cancellationToken);

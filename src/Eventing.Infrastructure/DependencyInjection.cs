@@ -1,7 +1,6 @@
 ﻿using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
-using Eventing.Infrastructure;
 using Eventing.Infrastructure.ServiceBus;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
@@ -35,7 +34,7 @@ public record EventingOptions
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddCatalogEventing(this IServiceCollection services)
+    public static IServiceCollection AddEventing(this IServiceCollection services)
     {
         services.AddAzureClients(clientBuilder =>
         {
@@ -58,15 +57,6 @@ public static class DependencyInjection
             });
         });
 
-        services.AddSingleton<EventConverter>();
-        services.AddSingleton<IEventConverter>(sp =>
-        {
-            var registry = sp.GetRequiredService<EventConverter>();
-            foreach (var @event in sp.GetServices<BaseEvent>())
-                registry.Register(@event);
-
-            return registry;
-        });
         services.AddSingleton<IEventPublisherFactory, EventPublisherFactory>();
         services.AddSingleton<IEventSubscriberFactory, EventSubscriberFactory>();
 

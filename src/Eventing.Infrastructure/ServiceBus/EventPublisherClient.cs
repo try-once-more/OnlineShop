@@ -1,10 +1,11 @@
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Eventing.Infrastructure.ServiceBus;
 
-internal sealed class EventPublisherClient(ServiceBusClient client, string topicName, IEventConverter eventConverter, ILogger<EventPublisherClient>? logger = default)
+internal sealed class EventPublisherClient(ServiceBusClient client, string topicName, ILogger<EventPublisherClient>? logger = default)
     : IEventPublisherClient, IAsyncDisposable
 {
     private readonly Lazy<ServiceBusSender> sender = new(() => client.CreateSender(topicName), LazyThreadSafetyMode.ExecutionAndPublication);
@@ -14,7 +15,7 @@ internal sealed class EventPublisherClient(ServiceBusClient client, string topic
         logger?.LogDebug("Publishing event {EventType} with MessageId={MessageId}", @event.EventType, @event.MessageId);
         try
         {
-            var payload = eventConverter.Serialize(@event);
+            var payload = JsonSerializer.Serialize<BaseEvent>(@event);
             var message = new ServiceBusMessage(payload)
             {
                 MessageId = @event.MessageId.ToString(),

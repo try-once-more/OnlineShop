@@ -1,10 +1,11 @@
 using CatalogService.Application.Abstractions.Repository;
-using CatalogService.Application.Events;
 using CatalogService.Application.Exceptions;
 using CatalogService.Domain.Entities;
 using CatalogService.Events.Products;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
@@ -54,7 +55,7 @@ public record AddProductCommand : IRequest<Product>
     public required int Amount { get; init; }
 }
 
-internal class AddProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingService eventingService, ILogger<AddProductCommandHandler>? logger = default)
+internal class AddProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<AddProductCommandHandler>? logger = default)
     : IRequestHandler<AddProductCommand, Product>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -77,7 +78,7 @@ internal class AddProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingS
             Amount = request.Amount
         };
 
-        if (eventingService.IsEnabled)
+        if (options.Value.IsEnabled)
         {
             await AddProductAndQueueEvent(product, cancellationToken);
         }
@@ -97,7 +98,7 @@ internal class AddProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingS
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         await unitOfWork.Products.AddAsync(product, cancellationToken);
 
-        var @event = eventingService.ToEventEntity(new ProductCreatedEvent
+        var entity = new ProductCreatedEvent
         {
             Id = product.Id,
             Name = product.Name,
@@ -106,11 +107,12 @@ internal class AddProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingS
             CategoryId = product.Category.Id,
             Description = product.Description,
             ImageUrl = product.ImageUrl
-        });
-        await unitOfWork.Events.AddAsync(@event, cancellationToken);
+        }.ToEventEntity();
+
+        await unitOfWork.Events.AddAsync(entity, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         logger?.LogInformation("Successfully added event with ID: {EventId}, EventType: {EventType}",
-            @event.Id, @event.EventType);
+            entity.Id, entity.EventType);
     }
 }

@@ -1,11 +1,12 @@
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Common;
-using CatalogService.Application.Events;
 using CatalogService.Application.Exceptions;
 using CatalogService.Domain.Entities;
 using CatalogService.Events.Products;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
@@ -62,7 +63,7 @@ public record UpdateProductCommand : IValidatableObject, IRequest
     }
 }
 
-internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventingService eventingService, ILogger<UpdateProductCommandHandler>? logger = default)
+internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogEventOptions> options, ILogger<UpdateProductCommandHandler>? logger = default)
     : IRequestHandler<UpdateProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -95,7 +96,7 @@ internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventi
                 ?? throw new CategoryNotFoundException(request.CategoryId.Value);
         }
 
-        if (eventingService.IsEnabled)
+        if (options.Value.IsEnabled)
         {
             await UpdateProductAndQueueEvent(existing, cancellationToken);
         }
@@ -109,7 +110,7 @@ internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventi
 
     private async Task UpdateProductAndQueueEvent(Product product, CancellationToken cancellationToken)
     {
-        var @event = eventingService.ToEventEntity(new ProductUpdatedEvent
+        var @event = new ProductUpdatedEvent
         {
             Id = product.Id,
             Name = product.Name,
@@ -118,7 +119,7 @@ internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, CatalogEventi
             CategoryId = product.Category.Id,
             Description = product.Description,
             ImageUrl = product.ImageUrl
-        });
+        }.ToEventEntity();
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
         await unitOfWork.Products.UpdateAsync(product, cancellationToken);

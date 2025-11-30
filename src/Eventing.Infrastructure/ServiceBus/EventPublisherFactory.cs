@@ -17,10 +17,9 @@ internal sealed class EventPublisherFactory(IServiceProvider serviceProvider) : 
         return publishers.GetOrAdd(topic, key => new(() =>
         {
             var client = serviceProvider.GetRequiredService<ServiceBusClient>();
-            var converter = serviceProvider.GetRequiredService<IEventConverter>();
             var logger = serviceProvider.GetService<ILogger<EventPublisherClient>>();
 
-            return new EventPublisherClient(client, key, converter, logger);
+            return new EventPublisherClient(client, key, logger);
         }, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
     }
 

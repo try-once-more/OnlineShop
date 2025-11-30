@@ -55,11 +55,11 @@ builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 
 builder.Services.Configure<CatalogDatabaseSettings>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
-builder.Services.Configure<CatalogEventingOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
+builder.Services.Configure<CatalogEventOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
 
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
-builder.Services.AddCatalogEventing();
+builder.Services.AddEventing();
 builder.Services.AddHostedService<EventProcessor>();
 
 AddMapper(builder.Services);

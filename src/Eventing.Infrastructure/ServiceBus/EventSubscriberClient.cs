@@ -2,6 +2,7 @@ using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Text.Json;
 using static Microsoft.Extensions.DependencyInjection.EventingOptions;
 
 namespace Eventing.Infrastructure.ServiceBus;
@@ -10,18 +11,11 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
 {
     private readonly ConcurrentDictionary<Type, IEventHandlerInvoker> handlers = [];
     private readonly Lazy<ServiceBusProcessor> processor;
-    private readonly IEventConverter eventConverter;
     private readonly ILogger<IEventSubscriberClient>? logger;
 
-    public EventSubscriberClient(
-        ServiceBusClient client,
-        string topicName,
-        string subscriptionName,
-        EventingProcessorOptions processorOptions,
-        IEventConverter eventConverter,
+    public EventSubscriberClient(ServiceBusClient client, string topicName, string subscriptionName, EventingProcessorOptions options,
         ILogger<IEventSubscriberClient>? logger = default)
     {
-        this.eventConverter = eventConverter;
         this.logger = logger;
 
         processor = new Lazy<ServiceBusProcessor>(() =>
@@ -31,9 +25,9 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
                 subscriptionName,
                 new ServiceBusProcessorOptions
                 {
-                    MaxConcurrentCalls = processorOptions.MaxConcurrentCalls,
-                    MaxAutoLockRenewalDuration = processorOptions.MaxAutoLockRenewalDuration,
-                    PrefetchCount = processorOptions.PrefetchCount,
+                    MaxConcurrentCalls = options.MaxConcurrentCalls,
+                    MaxAutoLockRenewalDuration = options.MaxAutoLockRenewalDuration,
+                    PrefetchCount = options.PrefetchCount,
                     ReceiveMode = ServiceBusReceiveMode.PeekLock,
                     AutoCompleteMessages = false
                 });
@@ -51,7 +45,7 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
 
     public void RegisterHandler<T>(IEventHandler<T> handler) where T : BaseEvent
     {
-        var type = handler.GetType();
+        var type = typeof(T);
         if (!handlers.TryAdd(type, new EventHandlerInvoker<T>(handler)))
         {
             logger?.LogError("Handler for {Type} already registered.", type.Name);
@@ -74,7 +68,7 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
         logger?.LogDebug("Received event with MessageId={MessageId}", messageId);
         try
         {
-            BaseEvent? @event = eventConverter.Deserialize(args.Message.Body.ToStream());
+            BaseEvent? @event = JsonSerializer.Deserialize<BaseEvent>(args.Message.Body);
             if (@event is null)
             {
                 logger?.LogWarning("Unable to deserialize event with MessageId={MessageId}. Dead-lettering.", messageId);
@@ -105,10 +99,10 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
         }
     }
 
-    public Task StartProcessingAsync(CancellationToken cancellationToken = default)
+    public Task StartListeningAsync(CancellationToken cancellationToken = default)
         => processor.Value.StartProcessingAsync(cancellationToken);
 
-    public Task StopProcessingAsync(CancellationToken cancellationToken = default)
+    public Task StopListeningAsync(CancellationToken cancellationToken = default)
         => processor.Value.StopProcessingAsync(cancellationToken);
 
     public async ValueTask DisposeAsync()

@@ -120,8 +120,8 @@ public class CartServiceTests
     public async Task AddItemsAsync_ShouldCreateCartAndAddMultipleItems(int itemCount)
     {
         Cart? savedCart = null;
-        repositoryMock.Setup(r => r.SaveAsync(It.IsAny<Cart>()))
-            .Callback<Cart>(c => savedCart = c)
+        repositoryMock.Setup(r => r.SaveAsync(It.IsAny<Cart>(), It.IsAny<CancellationToken>()))
+            .Callback<Cart, CancellationToken>((c, _) => savedCart = c)
             .Returns(Task.CompletedTask);
         var cart = TestHelper.CreateCartWithRandomItems(itemCount);
 

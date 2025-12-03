@@ -67,7 +67,7 @@ public class CartEndpointsV1Tests : IAsyncLifetime
             c.Items[0].Image != null &&
             c.Items[0].Image.Url == item.Image.Url &&
             c.Items[0].Image.AltText == item.Image.AltText
-        )), Times.Once);
+        ), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class CartEndpointsV1Tests : IAsyncLifetime
         existingCart.AddItem(new CartItem { Id = 1, Name = "Product 1", Price = 10.00m, Quantity = 1 });
         existingCart.AddItem(new CartItem { Id = 2, Name = "Product 2", Price = 20.00m, Quantity = 2 });
 
-        Factory.MockRepository.Setup(r => r.GetAsync(cartId))
+        Factory.MockRepository.Setup(r => r.GetAsync(cartId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCart);
 
         var newItem = new CartItem { Id = 3, Name = "Product 3", Price = 30.00m, Quantity = 3 };
@@ -150,7 +150,7 @@ public class CartEndpointsV1Tests : IAsyncLifetime
             c.Items.Any(i => i.Id == 1 && i.Name == "Product 1" && i.Price == 10.00m && i.Quantity == 1) &&
             c.Items.Any(i => i.Id == 2 && i.Name == "Product 2" && i.Price == 20.00m && i.Quantity == 2) &&
             c.Items.Any(i => i.Id == 3 && i.Name == "Product 3" && i.Price == 30.00m && i.Quantity == 3)
-        )), Times.Once);
+        ), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class CartEndpointsV1Tests : IAsyncLifetime
             Quantity = 3
         });
 
-        Factory.MockRepository.Setup(r => r.GetAsync(cartId))
+        Factory.MockRepository.Setup(r => r.GetAsync(cartId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCart);
 
         var response = await client.GetAsync($"/api/v1/cart/{cartId}");

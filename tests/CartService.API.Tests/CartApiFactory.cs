@@ -16,15 +16,15 @@ public class CartApiFactory : WebApplicationFactory<Program>
     public CartApiFactory()
     {
         Dictionary<Guid, Cart> cartStorage = [];
-        MockRepository.Setup(r => r.GetAsync(It.IsAny<Guid>()))
-            .ReturnsAsync((Guid cartId) =>
+        MockRepository.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid cartId, CancellationToken _) =>
             {
                 cartStorage.TryGetValue(cartId, out var cart);
                 return cart;
             });
 
-        MockRepository.Setup(r => r.SaveAsync(It.IsAny<Cart>()))
-            .Callback<Cart>(cart => cartStorage[cart.Id] = cart)
+        MockRepository.Setup(r => r.SaveAsync(It.IsAny<Cart>(), It.IsAny<CancellationToken>()))
+            .Callback<Cart, CancellationToken>((cart, _) => cartStorage[cart.Id] = cart)
             .Returns(Task.CompletedTask);
     }
 

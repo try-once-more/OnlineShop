@@ -1,3 +1,4 @@
+using CartService.API.CartEndpoints.Contracts;
 using CartService.Application.Entities;
 using Moq;
 using System.Net;

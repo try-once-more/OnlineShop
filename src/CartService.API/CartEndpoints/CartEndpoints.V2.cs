@@ -1,4 +1,6 @@
-﻿using CartService.Application.Abstractions;
+﻿using CartService.API.CartEndpoints.Contracts;
+using CartService.API.Configuration;
+using CartService.Application.Abstractions;
 using Mapster;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -6,16 +8,19 @@ namespace CartService.API.Endpoints
 {
     internal static partial class CartEndpoints
     {
-        internal static WebApplication MapCartEndpointsV2(this WebApplication app)
+        extension(WebApplication app)
         {
-            var group = app.MapGroup($"/api/{ApiVersions.V2}/cart")
+            internal WebApplication MapCartEndpointsV2()
+            {
+                var group = app.MapGroup("/api/v2/cart")
                 .WithTags("Cart")
-                .WithGroupName(ApiVersions.V2);
+                .WithGroupName("v2");
 
-            group.MapGet("/{cartId:guid}", GetCartInfoV2)
-                .WithName(nameof(GetCartInfoV2));
+                group.MapGet("/{cartId:guid}", GetCartInfoV2)
+                    .WithName(nameof(GetCartInfoV2));
 
-            return app;
+                return app;
+            }
         }
 
         /// <summary>

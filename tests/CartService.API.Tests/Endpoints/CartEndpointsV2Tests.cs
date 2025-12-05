@@ -1,3 +1,4 @@
+using CartService.API.CartEndpoints.Contracts;
 using CartService.Application.Entities;
 using Moq;
 using System.Net;
@@ -52,23 +53,28 @@ public class CartEndpointsV2Tests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var items = await response.Content.ReadFromJsonAsync<CartItemResponse[]>();
         Assert.NotNull(items);
-        Assert.Equal(3, items.Length);
-
-        var itemsToVerify = new[]
-        {
-            new { Id = 1, Name = "Product 1", Price = 10.00m, Quantity = 1 },
-            new { Id = 2, Name = "Product 2", Price = 20.00m, Quantity = 2 },
-            new { Id = 3, Name = "Product 3", Price = 30.00m, Quantity = 3 }
-        };
-
-        foreach (var expectedItem in itemsToVerify)
-        {
-            var actualItem = items.FirstOrDefault(i => i.Id == expectedItem.Id);
-            Assert.NotNull(actualItem);
-            Assert.Equal(expectedItem.Name, actualItem.Name);
-            Assert.Equal(expectedItem.Price, actualItem.Price);
-            Assert.Equal(expectedItem.Quantity, actualItem.Quantity);
-        }
+        Assert.Collection(items,
+            item =>
+            {
+                Assert.Equal(1, item.Id);
+                Assert.Equal("Product 1", item.Name);
+                Assert.Equal(10.00m, item.Price);
+                Assert.Equal(1, item.Quantity);
+            },
+            item =>
+            {
+                Assert.Equal(2, item.Id);
+                Assert.Equal("Product 2", item.Name);
+                Assert.Equal(20.00m, item.Price);
+                Assert.Equal(2, item.Quantity);
+            },
+            item =>
+            {
+                Assert.Equal(3, item.Id);
+                Assert.Equal("Product 3", item.Name);
+                Assert.Equal(30.00m, item.Price);
+                Assert.Equal(3, item.Quantity);
+            });
     }
 
     [Fact]
@@ -103,16 +109,24 @@ public class CartEndpointsV2Tests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var items = await response.Content.ReadFromJsonAsync<CartItemResponse[]>();
         Assert.NotNull(items);
-        Assert.Equal(2, items.Length);
-
-        var itemWithImage = items.FirstOrDefault(i => i.Id == 1);
-        Assert.NotNull(itemWithImage);
-        Assert.NotNull(itemWithImage.Image);
-        Assert.Equal("https://example.com/image1.jpg", itemWithImage.Image.Url);
-        Assert.Equal("Image 1", itemWithImage.Image.AltText);
-
-        var itemWithoutImage = items.FirstOrDefault(i => i.Id == 2);
-        Assert.NotNull(itemWithoutImage);
-        Assert.Null(itemWithoutImage.Image);
+        Assert.Collection(items,
+            item =>
+            {
+                Assert.Equal(1, item.Id);
+                Assert.Equal("Product with Image", item.Name);
+                Assert.Equal(100.00m, item.Price);
+                Assert.Equal(1, item.Quantity);
+                Assert.NotNull(item.Image);
+                Assert.Equal("https://example.com/image1.jpg", item.Image.Url);
+                Assert.Equal("Image 1", item.Image.AltText);
+            },
+            item =>
+            {
+                Assert.Equal(2, item.Id);
+                Assert.Equal("Product without Image", item.Name);
+                Assert.Equal(200.00m, item.Price);
+                Assert.Equal(2, item.Quantity);
+                Assert.Null(item.Image);
+            });
     }
 }

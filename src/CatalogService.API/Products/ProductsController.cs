@@ -1,24 +1,25 @@
 using Asp.Versioning;
-using CatalogService.API.Categories.V1;
 using CatalogService.API.Common;
-using CatalogService.API.Versions;
+using CatalogService.API.Products.Contracts;
 using CatalogService.Application.Products;
 using Mapster;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
 
-namespace CatalogService.API.Products.V1;
+namespace CatalogService.API.Products;
 
 /// <summary>
 /// Products management controller
 /// </summary>
 [ApiController]
-[ApiVersion(ApiVersions.V1)]
+[ApiVersion(1)]
 [Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
-public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder<ProductDto> linkBuilder, ILogger<ProductsController> logger) : ControllerBase
+public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder<ProductResponse> linkBuilder, ILogger<ProductsController> logger) : ControllerBase
 {
     /// <summary>
     /// Retrieves a list of products with optional filtering by category and pagination.
@@ -30,9 +31,9 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <returns>List of products for the specified parameters.</returns>
     /// <response code="200">Successfully retrieved products.</response>
     [HttpGet(Name = nameof(GetProducts))]
-    [ProducesResponseType<IReadOnlyCollection<ProductDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<IReadOnlyCollection<ProductResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyCollection<ProductDto>>> GetProducts(
+    public async Task<ActionResult<IReadOnlyCollection<ProductResponse>>> GetProducts(
         [FromQuery, Range(1, int.MaxValue)] int? categoryId,
         [FromQuery, Range(1, int.MaxValue)] int pageNumber = 1,
         [FromQuery, Range(1, 1000)] int pageSize = 10,
@@ -44,7 +45,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
             : new GetProductsQuery() { PageNumber = pageNumber, PageSize = pageSize };
 
         var products = await mediator.Send(request, cancellationToken);
-        var result = mapper.Map<ProductDto[]>(products);
+        var result = mapper.Map<ProductResponse[]>(products);
         logger.LogInformation("Retrieved {Count} products", result.Length);
 
         return Ok(result);
@@ -60,10 +61,10 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="400">Invalid request data.</response>
     /// <response code="404">Product not found.</response>
     [HttpGet("{id:int}", Name = nameof(GetProductById))]
-    [ProducesResponseType<ProductDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProductResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDto>> GetProductById(
+    public async Task<ActionResult<ProductResponse>> GetProductById(
         [FromRoute, Required, Range(1, int.MaxValue)] int id,
         CancellationToken cancellationToken)
     {
@@ -77,7 +78,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
             return NotFound();
         }
 
-        var result = product.Adapt<ProductDto>();
+        var result = product.Adapt<ProductResponse>();
         result.Links = linkBuilder.BuildLinks(result, Url);
 
         logger.LogInformation("Product with ID {ProductId} retrieved successfully", id);
@@ -93,10 +94,10 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="201">Product created successfully.</response>
     /// <response code="400">Invalid request data.</response>
     [HttpPost(Name = nameof(CreateProduct))]
-    [ProducesResponseType<ProductDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ProductResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProductDto>> CreateProduct(
-        [FromBody, Required] AddProductCommand request,
+    public async Task<ActionResult<ProductResponse>> CreateProduct(
+        [FromBody, Required] AddProductRequest request,
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
@@ -107,9 +108,10 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
             request.Price,
             request.Amount
         );
-        var product = await mediator.Send(request, cancellationToken);
+        var command = request.Adapt<AddProductCommand>();
+        var product = await mediator.Send(command, cancellationToken);
 
-        var result = product.Adapt<ProductDto>();
+        var result = product.Adapt<ProductResponse>();
         result.Links = linkBuilder.BuildLinks(result, Url);
         logger.LogInformation("Product created with ID {ProductId}", product.Id);
 
@@ -131,12 +133,14 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProduct(
+
         [FromRoute, Required, Range(1, int.MaxValue)] int id, // Not used, only for Swagger documentation
-        [FromBody, Required, ModelBinder(BinderType = typeof(UpdateProductModelBinder))] UpdateProductCommand request,
+        [BindNever, FromBody, Required] UpdateProductRequest request, // Not used, only for Swagger documentation
+        [SwaggerIgnore, ModelBinder(BinderType = typeof(UpdateProductModelBinder))] UpdateProductCommand command,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Updating product with ID {ProductId}", id);
-        await mediator.Send(request, cancellationToken);
+        await mediator.Send(command, cancellationToken);
         logger.LogInformation("Product with ID {ProductId} updated successfully", id);
 
         return NoContent();

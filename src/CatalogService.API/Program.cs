@@ -1,26 +1,21 @@
 using Asp.Versioning;
 using CatalogService.API.Categories;
-using CatalogService.API.Categories.V1;
+using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
+using CatalogService.API.Configuration;
 using CatalogService.API.Middleware;
 using CatalogService.API.Products;
-using CatalogService.API.Products.V1;
-using CatalogService.API.Versions;
+using CatalogService.API.Products.Contracts;
 using CatalogService.Application;
-using CatalogService.Application.Categories;
-using CatalogService.Application.Products;
-using CatalogService.Domain.Entities;
 using CatalogService.Infrastructure;
 using Eventing.Infrastructure;
-using Mapster;
-using MapsterMapper;
-using Microsoft.OpenApi;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
+builder.WebHost.UseKestrelHttpsConfiguration();
+
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = false;
@@ -36,6 +31,7 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
+builder.Services.AddValidation();
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
@@ -50,7 +46,18 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>() ?? new();
+        _ = corsOptions.AllowedOrigins.Contains("*")
+           ? policy.AllowAnyOrigin()
+           : policy.WithOrigins(corsOptions.AllowedOrigins);
+
+        _ = corsOptions.AllowedMethods.Contains("*")
+            ? policy.AllowAnyMethod()
+            : policy.WithMethods(corsOptions.AllowedMethods);
+
+        _ = corsOptions.AllowedHeaders.Contains("*")
+            ? policy.AllowAnyHeader()
+            : policy.WithHeaders(corsOptions.AllowedHeaders);
     });
 });
 
@@ -65,11 +72,23 @@ builder.Services.AddCatalogServiceApplication();
 builder.Services.AddEventing();
 builder.Services.AddHostedService<EventProcessor>();
 
-AddMapper(builder.Services);
-AddOpenApi(builder.Services);
+builder.Services.AddMapper();
 
-builder.Services.AddSingleton<ILinkBuilder<CategoryDto>, CategoryLinkBuilder>();
-builder.Services.AddSingleton<ILinkBuilder<ProductDto>, ProductLinkBuilder>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new() { Title = "Catalog Service API", Version = "v1" });
+
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath);
+    });
+}
+
+builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
+builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();
 var app = builder.Build();
 
 app.UseHttpsRedirection();
@@ -85,111 +104,8 @@ if (app.Environment.IsDevelopment())
     });
     app.UseSwaggerUI(options =>
     {
-        foreach (var version in ApiVersions.All)
-        {
-            options.SwaggerEndpoint($"/openapi/v{version}.json", $"Catalog Service API v{version}");
-        }
+        options.SwaggerEndpoint("/openapi/v1.json", "Catalog Service API v1");
     });
 }
 
 app.Run();
-
-
-static void AddMapper(IServiceCollection services)
-{
-    var config = TypeAdapterConfig.GlobalSettings;
-    config.NewConfig<Category, CategoryDto>();
-    config.NewConfig<Product, ProductDto>();
-
-    services.AddSingleton<IMapper>(new Mapper(config));
-}
-
-static void AddOpenApi(IServiceCollection services)
-{
-    services.AddSwaggerGen(options =>
-    {
-        foreach (var version in ApiVersions.All)
-        {
-            options.SwaggerDoc($"v{version}", new() { Title = "Catalog Service API", Version = $"v{version}" });
-        }
-
-        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        if (File.Exists(xmlPath))
-            options.IncludeXmlComments(xmlPath);
-
-        options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UpdateCategoryCommand), () => new OpenApiSchema
-        {
-            Type = JsonSchemaType.Object,
-            Properties = new Dictionary<string, IOpenApiSchema>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["name"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.String | JsonSchemaType.Null,
-                    MinLength = 1,
-                    MaxLength = 50
-                },
-                ["imageUrl"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.String | JsonSchemaType.Null,
-                    Format = "uri",
-                    Default = JsonValue.Create("https://example.com/image.jpg")
-                },
-                ["parentCategoryId"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
-                    Format = "int32",
-                    Minimum = "1"
-                }
-            },
-            Required = new HashSet<string>()
-        });
-
-        options.SchemaGeneratorOptions.CustomTypeMappings.Add(typeof(UpdateProductCommand), () => new OpenApiSchema
-        {
-            Type = JsonSchemaType.Object,
-            Properties = new Dictionary<string, IOpenApiSchema>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["name"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.String | JsonSchemaType.Null,
-                    MinLength = 1,
-                    MaxLength = 50
-                },
-                ["description"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.String | JsonSchemaType.Null
-                },
-                ["imageUrl"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.String | JsonSchemaType.Null,
-                    Format = "uri",
-                    Example = JsonValue.Create("https://example.com/image.jpg")
-                },
-                ["categoryId"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
-                    Format = "int32",
-                    Minimum = "1"
-                },
-                ["price"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.Number | JsonSchemaType.Null,
-                    Format = "decimal",
-                    Minimum = "0.01"
-                },
-                ["amount"] = new OpenApiSchema
-                {
-                    Type = JsonSchemaType.Integer | JsonSchemaType.Null,
-                    Format = "int32",
-                    Minimum = "1"
-                }
-            },
-            Required = new HashSet<string>()
-        });
-
-        options.EnableAnnotations();
-    });
-}
-
-public partial class Program { }

@@ -1,12 +1,12 @@
 ﻿using CatalogService.API.Common;
-using CatalogService.API.Products.V1;
+using CatalogService.API.Products.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.API.Products;
 
-internal class ProductLinkBuilder : ILinkBuilder<ProductDto>
+internal class ProductLinkBuilder : ILinkBuilder<ProductResponse>
 {
-    public IDictionary<string, Link> BuildLinks(ProductDto entity, IUrlHelper urlHelper)
+    public IDictionary<string, Link> BuildLinks(ProductResponse entity, IUrlHelper urlHelper)
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(urlHelper);

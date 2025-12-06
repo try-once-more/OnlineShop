@@ -1,3 +1,4 @@
+using CatalogService.API.Categories.Contracts;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -15,7 +16,7 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
     [Fact]
     public async Task GetCategories_ShouldReturnEmptyList_WhenNoCategoriesExist()
     {
-        var categories = await _client.GetFromJsonAsync<CategoryDto[]>("/api/v1/categories");
+        var categories = await _client.GetFromJsonAsync<CategoryResponse[]>("/api/v1/categories");
         Assert.NotNull(categories);
         Assert.Empty(categories);
     }
@@ -23,18 +24,17 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
     [Fact]
     public async Task CreateCategory_ShouldReturnCreatedCategory()
     {
-        var command = new AddCategoryRequestDto
-        {
-            Name = "Electronics",
-            ImageUrl = new Uri("https://example.com/electronics.jpg")
-        };
-        var response = await _client.PostAsJsonAsync("/api/v1/categories", command);
+        var request = new AddCategoryRequest(
+            Name: "Electronics",
+            ImageUrl: new Uri("https://example.com/electronics.jpg")
+        );
+        var response = await _client.PostAsJsonAsync("/api/v1/categories", request);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var category = await response.Content.ReadFromJsonAsync<CategoryDto>();
+        var category = await response.Content.ReadFromJsonAsync<CategoryResponse>();
         Assert.NotNull(category);
         Assert.NotEqual(0, category.Id);
-        Assert.Equal(command.Name, category.Name);
-        Assert.Equal(command.ImageUrl, category.ImageUrl);
+        Assert.Equal(request.Name, category.Name);
+        Assert.Equal(request.ImageUrl.ToString(), category.ImageUrl);
         Assert.NotNull(response.Headers.Location);
     }
 
@@ -44,14 +44,16 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
     [InlineData(null)]
     public async Task CreateCategory_ShouldReturnBadRequest_WhenNameIsInvalid(string? invalidName)
     {
-        var response = await _client.PostAsJsonAsync("/api/v1/categories", new AddCategoryRequestDto { Name = invalidName });
+        var request = new AddCategoryRequest(Name: invalidName!);
+        var response = await _client.PostAsJsonAsync("/api/v1/categories", request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateCategory_ShouldReturnBadRequest_WhenNameExceedsMaxLength()
     {
-        var response = await _client.PostAsJsonAsync("/api/v1/categories", new AddCategoryRequestDto { Name = new string('a', 51) });
+        var request = new AddCategoryRequest(Name: new string('a', 51));
+        var response = await _client.PostAsJsonAsync("/api/v1/categories", request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -59,7 +61,7 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
     public async Task GetCategoryById_ShouldReturnCategory_WhenCategoryExists()
     {
         var created = await CreateCategoryAsync("Books");
-        var category = await _client.GetFromJsonAsync<CategoryDto>($"/api/v1/categories/{created.Id}");
+        var category = await _client.GetFromJsonAsync<CategoryResponse>($"/api/v1/categories/{created.Id}");
         Assert.NotNull(category);
         Assert.Equal(created.Id, category.Id);
         Assert.Equal(created.Name, category.Name);
@@ -78,8 +80,8 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
         for (int i = 1; i <= 15; i++)
             await CreateCategoryAsync($"Category {i}");
 
-        var page1 = await _client.GetFromJsonAsync<CategoryDto[]>("/api/v1/categories?pageNumber=1&pageSize=10");
-        var page2 = await _client.GetFromJsonAsync<CategoryDto[]>("/api/v1/categories?pageNumber=2&pageSize=10");
+        var page1 = await _client.GetFromJsonAsync<CategoryResponse[]>("/api/v1/categories?pageNumber=1&pageSize=10");
+        var page2 = await _client.GetFromJsonAsync<CategoryResponse[]>("/api/v1/categories?pageNumber=2&pageSize=10");
         Assert.NotNull(page1);
         Assert.NotNull(page2);
         Assert.Equal(10, page1.Length);
@@ -92,7 +94,7 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
         var created = await CreateCategoryAsync("Original Name");
         var response = await _client.PatchAsJsonAsync($"/api/v1/categories/{created.Id}", new { name = "Updated Name" });
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var updated = await _client.GetFromJsonAsync<CategoryDto>($"/api/v1/categories/{created.Id}");
+        var updated = await _client.GetFromJsonAsync<CategoryResponse>($"/api/v1/categories/{created.Id}");
         Assert.Equal("Updated Name", updated!.Name);
     }
 
@@ -132,30 +134,14 @@ public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixtur
         Assert.Equal(HttpStatusCode.NotFound, getParentResponse.StatusCode);
     }
 
-    private async Task<CategoryDto> CreateCategoryAsync(string name = "Test Category", Uri? imageUrl = null, int? parentCategoryId = null)
+    private async Task<CategoryResponse> CreateCategoryAsync(string name = "Test Category", Uri? imageUrl = null, int? parentCategoryId = null)
         => await CreateCategoryAsync(_client, name, imageUrl, parentCategoryId);
 
-    internal async static Task<CategoryDto> CreateCategoryAsync(HttpClient client, string name = "Test Category", Uri? imageUrl = null, int? parentCategoryId = null)
+    internal async static Task<CategoryResponse> CreateCategoryAsync(HttpClient client, string name = "Test Category", Uri? imageUrl = null, int? parentCategoryId = null)
     {
-        var command = new AddCategoryRequestDto { Name = name, ImageUrl = imageUrl, ParentCategoryId = parentCategoryId };
-        var response = await client.PostAsJsonAsync("/api/v1/categories", command);
+        var request = new AddCategoryRequest(Name: name, ImageUrl: imageUrl, ParentCategoryId: parentCategoryId);
+        var response = await client.PostAsJsonAsync("/api/v1/categories", request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<CategoryDto>()!;
+        return await response.Content.ReadFromJsonAsync<CategoryResponse>();
     }
-}
-
-internal class AddCategoryRequestDto
-{
-    public string Name { get; set; }
-    public Uri? ImageUrl { get; set; }
-    public int? ParentCategoryId { get; set; }
-}
-
-internal class CategoryDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public Uri? ImageUrl { get; set; }
-    public int? ParentCategoryId { get; set; }
-    public object? Links { get; set; }
 }

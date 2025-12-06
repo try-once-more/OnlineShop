@@ -1,12 +1,12 @@
-﻿using CatalogService.API.Categories.V1;
+﻿using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.API.Categories;
 
-internal class CategoryLinkBuilder : ILinkBuilder<CategoryDto>
+internal class CategoryLinkBuilder : ILinkBuilder<CategoryResponse>
 {
-    public IDictionary<string, Link> BuildLinks(CategoryDto entity, IUrlHelper urlHelper)
+    public IDictionary<string, Link> BuildLinks(CategoryResponse entity, IUrlHelper urlHelper)
     {
         ArgumentNullException.ThrowIfNull(entity);
         ArgumentNullException.ThrowIfNull(urlHelper);

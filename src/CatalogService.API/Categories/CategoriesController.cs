@@ -1,24 +1,26 @@
 ﻿using Asp.Versioning;
+using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
-using CatalogService.API.Versions;
 using CatalogService.Application.Categories;
-using CatalogService.Domain.Entities;
 using Mapster;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Mime;
 
-namespace CatalogService.API.Categories.V1;
+namespace CatalogService.API.Categories;
 
 /// <summary>
 /// Categories management controller
 /// </summary>
 [ApiController]
-[ApiVersion(ApiVersions.V1)]
+[ApiVersion(1)]
 [Route("api/v{version:apiVersion}/categories")]
-[Produces("application/json")]
-public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuilder<CategoryDto> linkBuilder, ILogger<CategoriesController> logger) : ControllerBase
+[Produces(MediaTypeNames.Application.Json)]
+public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuilder<CategoryResponse> linkBuilder, ILogger<CategoriesController> logger) : ControllerBase
 {
     /// <summary>
     /// Retrieves a list of categories with optional pagination.
@@ -29,8 +31,8 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <returns>List of categories for the specified parameters.</returns>
     /// <response code="200">Successfully retrieved categories.</response>
     [HttpGet(Name = nameof(GetCategories))]
-    [ProducesResponseType<IReadOnlyCollection<Category>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyCollection<Category>>> GetCategories(
+    [ProducesResponseType<IReadOnlyCollection<CategoryResponse>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyCollection<CategoryResponse>>> GetCategories(
         [FromQuery, Range(1, int.MaxValue)] int pageNumber = 1,
         [FromQuery, Range(1, 1000)] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -39,7 +41,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
         var request = new GetCategoriesQuery() { PageNumber = pageNumber, PageSize = pageSize };
         var categories = await mediator.Send(request, cancellationToken);
 
-        var result = mapper.Map<CategoryDto[]>(categories);
+        var result = mapper.Map<CategoryResponse[]>(categories);
         logger.LogInformation("Retrieved {Count} categories", result.Length);
 
         return Ok(result);
@@ -55,7 +57,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <response code="400">Invalid request data.</response>
     /// <response code="404">Category not found.</response>
     [HttpGet("{id:int}", Name = nameof(GetCategoryById))]
-    [ProducesResponseType<CategoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<CategoryResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCategoryById(
@@ -72,7 +74,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
             return NotFound();
         }
 
-        var result = category.Adapt<CategoryDto>();
+        var result = category.Adapt<CategoryResponse>();
         result.Links = linkBuilder.BuildLinks(result, Url);
         logger.LogInformation("Category with ID {CategoryId} retrieved successfully", id);
 
@@ -88,10 +90,10 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <response code="201">Category created successfully.</response>
     /// <response code="400">Invalid request data</response>
     [HttpPost(Name = nameof(CreateCategory))]
-    [ProducesResponseType<CategoryDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<CategoryResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CategoryDto>> CreateCategory(
-        [FromBody, Required] AddCategoryCommand request,
+    public async Task<ActionResult<CategoryResponse>> CreateCategory(
+        [FromBody, Required] AddCategoryRequest request,
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
@@ -100,10 +102,12 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
             request.ImageUrl,
             request.ParentCategoryId
         );
-        var category = await mediator.Send(request, cancellationToken);
+        var command = request.Adapt<AddCategoryCommand>();
+        var category = await mediator.Send(command, cancellationToken);
 
-        var result = category.Adapt<CategoryDto>();
+        var result = category.Adapt<CategoryResponse>();
         result.Links = linkBuilder.BuildLinks(result, Url);
+
         logger.LogInformation("Category created with ID {CategoryId}", category.Id);
 
         return CreatedAtRoute(nameof(GetCategoryById), new { id = category.Id }, result);
@@ -125,11 +129,12 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCategory(
         [FromRoute, Required, Range(1, int.MaxValue)] int id, // Not used, only for Swagger documentation
-        [FromBody, Required, ModelBinder(BinderType = typeof(UpdateCategoryModelBinder))] UpdateCategoryCommand request,
+        [BindNever, FromBody, Required] UpdateCategoryRequest request, // Not used, only for Swagger documentation
+        [SwaggerIgnore, ModelBinder(BinderType = typeof(UpdateCategoryModelBinder))] UpdateCategoryCommand command,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Updating category with ID {CategoryId}", id);
-        await mediator.Send(request, cancellationToken);
+        await mediator.Send(command, cancellationToken);
         logger.LogInformation("Category with ID {CategoryId} updated successfully", id);
 
         return NoContent();

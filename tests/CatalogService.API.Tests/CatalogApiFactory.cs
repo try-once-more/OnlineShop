@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +22,20 @@ public class CatalogApiFactory : WebApplicationFactory<Program>
             config.AddJsonFile(Path.Combine(projectDir, "appsettings.json"), optional: false)
                   .AddJsonFile(Path.Combine(projectDir, $"appsettings.{environment}.json"), optional: true)
                   .AddEnvironmentVariables();
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(TestAuthenticationHandler.TestScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
+            services.AddAuthentication(TestAuthenticationHandler.TestScheme)
+                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                    TestAuthenticationHandler.TestScheme, options => { });
         });
     }
 

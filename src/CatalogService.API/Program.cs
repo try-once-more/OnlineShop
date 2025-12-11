@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using CatalogService.API.Categories;
 using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
@@ -9,7 +9,8 @@ using CatalogService.API.Products.Contracts;
 using CatalogService.Application;
 using CatalogService.Infrastructure;
 using Eventing.Infrastructure;
-using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -41,6 +42,37 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
+
+var authenticationOptions = builder.Configuration
+    .GetSection("Authentication")
+    .Get<AuthenticationOptions>()
+    ?? throw new InvalidOperationException("Authentication configuration is missing");
+
+var permissionOptions = builder.Configuration
+    .GetSection("Permissions")
+    .Get<PermissionOptions>()
+    ?? throw new InvalidOperationException("Permissions configuration is missing");
+
+var swaggerOptions = builder.Configuration
+        .GetSection("Swagger")
+        .Get<SwaggerOptions>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = authenticationOptions.Authority;
+        options.Audience = authenticationOptions.Audience;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuers = authenticationOptions.ValidIssuers,
+            ValidAudiences = authenticationOptions.ValidAudiences,
+            ClockSkew = TimeSpan.FromMinutes(authenticationOptions.ClockSkewMinutes)
+        };
+    });
+
+builder.Services.AddAuthorizationPolicies(permissionOptions, authenticationOptions.RequiredScopes.Select(s => (s.Claim, s.Name)));
 
 builder.Services.AddCors(options =>
 {
@@ -76,15 +108,7 @@ builder.Services.AddMapper();
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddSwaggerGen(options =>
-    {
-        options.SwaggerDoc("v1", new() { Title = "Catalog Service API", Version = "v1" });
-
-        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        if (File.Exists(xmlPath))
-            options.IncludeXmlComments(xmlPath);
-    });
+    builder.Services.AddSwagger(swaggerOptions, authenticationOptions.RequiredScopes);
 }
 
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
@@ -94,10 +118,10 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
+    //leave swagger unprotected for dev purposes
     app.UseSwagger(options =>
     {
         options.RouteTemplate = "openapi/{documentName}.json";
@@ -105,7 +129,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Catalog Service API v1");
+        if (swaggerOptions != null)
+        {
+            options.OAuthClientId(swaggerOptions.ClientId);
+            options.OAuthUsePkce();
+            options.OAuthScopes(authenticationOptions.RequiredScopes.Select(s => s.FullName).ToArray());
+        }
     });
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();

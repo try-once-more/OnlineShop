@@ -1,10 +1,12 @@
 using Asp.Versioning;
 using CatalogService.API.Common;
+using CatalogService.API.Configuration;
 using CatalogService.API.Products.Contracts;
 using CatalogService.Application.Products;
 using Mapster;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.Annotations;
@@ -17,6 +19,7 @@ namespace CatalogService.API.Products;
 /// </summary>
 [ApiController]
 [ApiVersion(1)]
+[Authorize(Policy = nameof(PermissionOptions.ReadRole))]
 [Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder<ProductResponse> linkBuilder, ILogger<ProductsController> logger) : ControllerBase
@@ -94,6 +97,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="201">Product created successfully.</response>
     /// <response code="400">Invalid request data.</response>
     [HttpPost(Name = nameof(CreateProduct))]
+    [Authorize(Policy = nameof(PermissionOptions.CreateRole))]
     [ProducesResponseType<ProductResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProductResponse>> CreateProduct(
@@ -129,6 +133,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="400">Invalid request data.</response>
     /// <response code="404">Product not found.</response>
     [HttpPatch("{id:int}", Name = nameof(UpdateProduct))]
+    [Authorize(Policy = nameof(PermissionOptions.UpdateRole))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -155,6 +160,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="204">Product deleted successfully.</response>
     /// <response code="400">Cannot delete product.</response>
     [HttpDelete("{id:int}", Name = nameof(DeleteProduct))]
+    [Authorize(Policy = nameof(PermissionOptions.DeleteRole))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteProduct(

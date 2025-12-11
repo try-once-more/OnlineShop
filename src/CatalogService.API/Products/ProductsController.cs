@@ -19,7 +19,7 @@ namespace CatalogService.API.Products;
 /// </summary>
 [ApiController]
 [ApiVersion(1)]
-[Authorize(Policy = nameof(PermissionOptions.ReadRole))]
+[Authorize(Policy = nameof(Permissions.Read))]
 [Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder<ProductResponse> linkBuilder, ILogger<ProductsController> logger) : ControllerBase
@@ -97,7 +97,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="201">Product created successfully.</response>
     /// <response code="400">Invalid request data.</response>
     [HttpPost(Name = nameof(CreateProduct))]
-    [Authorize(Policy = nameof(PermissionOptions.CreateRole))]
+    [Authorize(Policy = nameof(Permissions.Create))]
     [ProducesResponseType<ProductResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProductResponse>> CreateProduct(
@@ -133,7 +133,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="400">Invalid request data.</response>
     /// <response code="404">Product not found.</response>
     [HttpPatch("{id:int}", Name = nameof(UpdateProduct))]
-    [Authorize(Policy = nameof(PermissionOptions.UpdateRole))]
+    [Authorize(Policy = nameof(Permissions.Update))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -160,7 +160,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// <response code="204">Product deleted successfully.</response>
     /// <response code="400">Cannot delete product.</response>
     [HttpDelete("{id:int}", Name = nameof(DeleteProduct))]
-    [Authorize(Policy = nameof(PermissionOptions.DeleteRole))]
+    [Authorize(Policy = nameof(Permissions.Delete))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteProduct(

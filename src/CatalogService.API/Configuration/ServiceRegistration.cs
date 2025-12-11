@@ -33,46 +33,7 @@ internal static class ServiceRegistration
             return services;
         }
 
-        internal IServiceCollection AddAuthorizationPolicies(
-            PermissionOptions permissionOptions,
-            IEnumerable<(string Claim, string Name)> requiredScopes)
-        {
-            List<(string PolicyName, string Role)> policies =
-            [
-                (nameof(PermissionOptions.ReadRole), permissionOptions.ReadRole),
-                (nameof(PermissionOptions.CreateRole), permissionOptions.CreateRole),
-                (nameof(PermissionOptions.UpdateRole), permissionOptions.UpdateRole),
-                (nameof(PermissionOptions.DeleteRole), permissionOptions.DeleteRole)
-            ];
-
-            var authBuilder = services.AddAuthorizationBuilder();
-            foreach (var (policyName, role) in policies)
-            {
-                authBuilder.AddPolicy(policyName, p =>
-                {
-                    foreach (var (claim, value) in requiredScopes)
-                        p.RequireClaim(claim, value);
-                    p.RequireRole(role);
-                });
-            }
-
-            authBuilder.AddDefaultPolicy("DefaultPolicy", p =>
-                {
-                    p.RequireAuthenticatedUser();
-                    foreach (var (claim, value) in requiredScopes)
-                        p.RequireClaim(claim, value);
-                })
-                .AddFallbackPolicy("FallbackPolicy", p =>
-                {
-                    p.RequireAuthenticatedUser();
-                    foreach (var (claim, value) in requiredScopes)
-                        p.RequireClaim(claim, value);
-                });
-
-            return services;
-        }
-
-        internal IServiceCollection AddSwagger(SwaggerOptions swaggerOptions, RequiredScopeOptions[] requiredScopes)
+        internal IServiceCollection AddSwagger(WebApplicationBuilder builder)
         {
             services.AddSwaggerGen(options =>
             {
@@ -89,16 +50,16 @@ internal static class ServiceRegistration
                     Type = SecuritySchemeType.Http,
                     Scheme = JwtBearerDefaults.AuthenticationScheme,
                     BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "Enter an existing JWT token"
+                    In = ParameterLocation.Header
                 });
                 options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                 {
                     [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = []
                 });
 
-                if (swaggerOptions != null)
+                if (builder.Environment.IsDevelopment())
                 {
+                    var swaggerOptions = builder.Configuration.GetSection("Swagger").Get<SwaggerOptions>() ?? new();
                     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                     {
                         Type = SecuritySchemeType.OAuth2,
@@ -108,13 +69,13 @@ internal static class ServiceRegistration
                             {
                                 AuthorizationUrl = new Uri(swaggerOptions.AuthorizationUrl),
                                 TokenUrl = new Uri(swaggerOptions.TokenUrl),
-                                Scopes = requiredScopes.ToDictionary(i => i.FullName, i => i.Description)
+                                Scopes = swaggerOptions.Scopes.ToDictionary(i => i, i => string.Empty)
                             }
                         }
                     });
                     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                     {
-                        [new OpenApiSecuritySchemeReference("oauth2", document)] = [.. requiredScopes.Select(s => s.FullName),]
+                        [new OpenApiSecuritySchemeReference("oauth2", document)] = [.. swaggerOptions.Scopes]
                     });
                 }
             });

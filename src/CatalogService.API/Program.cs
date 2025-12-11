@@ -10,7 +10,8 @@ using CatalogService.Application;
 using CatalogService.Infrastructure;
 using Eventing.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -33,6 +34,9 @@ builder.Services.AddApiVersioning(options =>
 });
 
 builder.Services.AddValidation();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
@@ -42,37 +46,6 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
-
-var authenticationOptions = builder.Configuration
-    .GetSection("Authentication")
-    .Get<AuthenticationOptions>()
-    ?? throw new InvalidOperationException("Authentication configuration is missing");
-
-var permissionOptions = builder.Configuration
-    .GetSection("Permissions")
-    .Get<PermissionOptions>()
-    ?? throw new InvalidOperationException("Permissions configuration is missing");
-
-var swaggerOptions = builder.Configuration
-        .GetSection("Swagger")
-        .Get<SwaggerOptions>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = authenticationOptions.Authority;
-        options.Audience = authenticationOptions.Audience;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuers = authenticationOptions.ValidIssuers,
-            ValidAudiences = authenticationOptions.ValidAudiences,
-            ClockSkew = TimeSpan.FromMinutes(authenticationOptions.ClockSkewMinutes)
-        };
-    });
-
-builder.Services.AddAuthorizationPolicies(permissionOptions, authenticationOptions.RequiredScopes.Select(s => (s.Claim, s.Name)));
 
 builder.Services.AddCors(options =>
 {
@@ -93,11 +66,16 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
+builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
 
 builder.Services.Configure<CatalogDatabaseOptions>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
 builder.Services.Configure<CatalogPublisherOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
+builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
+builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
 
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
@@ -106,10 +84,7 @@ builder.Services.AddHostedService<EventProcessor>();
 
 builder.Services.AddMapper();
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSwagger(swaggerOptions, authenticationOptions.RequiredScopes);
-}
+builder.Services.AddSwagger(builder);
 
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
 builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();
@@ -121,19 +96,20 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    //leave swagger unprotected for dev purposes
+    ////swagger unprotected just for dev purposes
     app.UseSwagger(options =>
     {
         options.RouteTemplate = "openapi/{documentName}.json";
     });
     app.UseSwaggerUI(options =>
     {
+        var swaggerOptions = app.Services.GetService<IOptions<SwaggerOptions>>()?.Value ?? new();
         options.SwaggerEndpoint("/openapi/v1.json", "Catalog Service API v1");
         if (swaggerOptions != null)
         {
             options.OAuthClientId(swaggerOptions.ClientId);
             options.OAuthUsePkce();
-            options.OAuthScopes(authenticationOptions.RequiredScopes.Select(s => s.FullName).ToArray());
+            options.OAuthScopes(swaggerOptions.Scopes);
         }
     });
 }

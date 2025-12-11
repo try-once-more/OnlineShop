@@ -1,6 +1,8 @@
-﻿internal sealed class CorsOptions
+﻿namespace CatalogService.API.Configuration;
+
+internal sealed class CorsOptions
 {
-    internal string[] AllowedOrigins { get; init; } = [];
-    internal string[] AllowedMethods { get; init; } = [];
-    internal string[] AllowedHeaders { get; init; } = [];
+    public string[] AllowedOrigins { get; init; } = [];
+    public string[] AllowedMethods { get; init; } = [];
+    public string[] AllowedHeaders { get; init; } = [];
 }

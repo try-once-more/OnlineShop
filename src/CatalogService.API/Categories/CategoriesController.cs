@@ -1,10 +1,12 @@
 ﻿using Asp.Versioning;
 using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
+using CatalogService.API.Configuration;
 using CatalogService.Application.Categories;
 using Mapster;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.Annotations;
@@ -18,6 +20,7 @@ namespace CatalogService.API.Categories;
 /// </summary>
 [ApiController]
 [ApiVersion(1)]
+[Authorize(Policy = nameof(Permissions.Read))]
 [Route("api/v{version:apiVersion}/categories")]
 [Produces(MediaTypeNames.Application.Json)]
 public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuilder<CategoryResponse> linkBuilder, ILogger<CategoriesController> logger) : ControllerBase
@@ -90,6 +93,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <response code="201">Category created successfully.</response>
     /// <response code="400">Invalid request data</response>
     [HttpPost(Name = nameof(CreateCategory))]
+    [Authorize(Policy = nameof(Permissions.Create))]
     [ProducesResponseType<CategoryResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryResponse>> CreateCategory(
@@ -124,6 +128,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <response code="400">Invalid request data.</response>
     /// <response code="404">Category not found.</response>
     [HttpPatch("{id:int}", Name = nameof(UpdateCategory))]
+    [Authorize(Policy = nameof(Permissions.Update))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -150,6 +155,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
     /// <response code="204">Category deleted successfully.</response>
     /// <response code="400">Cannot delete category.</response>
     [HttpDelete("{id:int}", Name = nameof(DeleteCategory))]
+    [Authorize(Policy = nameof(Permissions.Delete))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteCategory(

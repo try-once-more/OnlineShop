@@ -15,16 +15,19 @@ internal static partial class CartEndpoints
         {
             var group = app.MapGroup("/api/v1/cart")
             .WithTags("Cart")
-            .WithGroupName("v1");
+            .WithGroupName("v1")
+            .RequireAuthorization(nameof(Permissions.Read));
 
             group.MapGet("/{cartId:guid}", GetCartInfo)
                  .WithName(nameof(GetCartInfo));
 
             group.MapPost("/{cartId:guid}/items", AddCartItem)
-                .WithName(nameof(AddCartItem));
+                .WithName(nameof(AddCartItem))
+                .RequireAuthorization(nameof(Permissions.Update));
 
             group.MapDelete("/{cartId:guid}/items/{itemId:int}", DeleteCartItem)
-                .WithName(nameof(DeleteCartItem));
+                .WithName(nameof(DeleteCartItem))
+                .RequireAuthorization(nameof(Permissions.Delete));
 
             return app;
         }

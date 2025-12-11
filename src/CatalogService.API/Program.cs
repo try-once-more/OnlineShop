@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using CatalogService.API.Categories;
 using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
@@ -9,7 +9,9 @@ using CatalogService.API.Products.Contracts;
 using CatalogService.Application;
 using CatalogService.Infrastructure;
 using Eventing.Infrastructure;
-using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -32,6 +34,9 @@ builder.Services.AddApiVersioning(options =>
 });
 
 builder.Services.AddValidation();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
@@ -61,11 +66,16 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
+builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
 
 builder.Services.Configure<CatalogDatabaseOptions>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
 builder.Services.Configure<CatalogPublisherOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
+builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
+builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
 
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
@@ -74,18 +84,7 @@ builder.Services.AddHostedService<EventProcessor>();
 
 builder.Services.AddMapper();
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSwaggerGen(options =>
-    {
-        options.SwaggerDoc("v1", new() { Title = "Catalog Service API", Version = "v1" });
-
-        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        if (File.Exists(xmlPath))
-            options.IncludeXmlComments(xmlPath);
-    });
-}
+builder.Services.AddSwagger(builder);
 
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
 builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();
@@ -94,18 +93,30 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
+    ////swagger unprotected just for dev purposes
     app.UseSwagger(options =>
     {
         options.RouteTemplate = "openapi/{documentName}.json";
     });
     app.UseSwaggerUI(options =>
     {
+        var swaggerOptions = app.Services.GetService<IOptions<SwaggerOptions>>()?.Value ?? new();
         options.SwaggerEndpoint("/openapi/v1.json", "Catalog Service API v1");
+        if (swaggerOptions != null)
+        {
+            options.OAuthClientId(swaggerOptions.ClientId);
+            options.OAuthUsePkce();
+            options.OAuthScopes(swaggerOptions.Scopes);
+        }
     });
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();

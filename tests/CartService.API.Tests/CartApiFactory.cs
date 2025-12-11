@@ -1,8 +1,11 @@
 using CartService.Application.Abstractions;
 using CartService.Application.Entities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -30,10 +33,31 @@ public class CartApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "IntegrationTests";
+        builder.UseEnvironment(environment);
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            var projectDir = Directory.GetCurrentDirectory();
+            config.AddJsonFile(Path.Combine(projectDir, "appsettings.json"), optional: false)
+                  .AddJsonFile(Path.Combine(projectDir, $"appsettings.{environment}.json"), optional: true)
+                  .AddEnvironmentVariables();
+        });
+
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<ICartRepository>();
             services.AddScoped<ICartRepository>(_ => MockRepository.Object);
+
+            services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(TestAuthenticationHandler.TestScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
+            services.AddAuthentication(TestAuthenticationHandler.TestScheme)
+                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                    TestAuthenticationHandler.TestScheme, options => { });
         });
     }
 }

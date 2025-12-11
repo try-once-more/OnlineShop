@@ -1,0 +1,30 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path="Scripts/migration.sql" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/CartService.API/CartService.API.csproj" />
+    <Project Path="src/CartService/CartService.csproj" />
+    <Project Path="src/CatalogService.API/CatalogService.API.csproj" />
+    <Project Path="src/CatalogService.Application/CatalogService.Application.csproj" />
+    <Project Path="src/CatalogService.Domain/CatalogService.Domain.csproj" />
+    <Project Path="src/CatalogService.Events/CatalogService.Events.csproj" />
+    <Project Path="src/CatalogService.Infrastructure/CatalogService.Infrastructure.csproj" />
+    <Project Path="src/Eventing.Abstraction/Eventing.Abstraction.csproj" />
+    <Project Path="src/Eventing.Infrastructure/Eventing.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CartService.API.Tests/CartService.API.Tests.csproj" />
+    <Project Path="tests/CartService.Tests/CartService.Tests.csproj" />
+    <Project Path="tests/CatalogService.API.Tests/CatalogService.API.Tests.csproj" />
+    <Project Path="tests/CatalogService.Application.Tests/CatalogService.Application.Tests.csproj" />
+    <Project Path="tests/CatalogService.Domain.Tests/CatalogService.Domain.Tests.csproj" />
+    <Project Path="tests/CatalogService.Infrastructure.Tests/CatalogService.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

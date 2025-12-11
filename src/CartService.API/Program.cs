@@ -5,37 +5,11 @@ using CartService.Application;
 using CartService.Infrastructure;
 using Eventing.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
-
-builder.Services.Configure<AuthenticationOptions>(builder.Configuration.GetSection("Authentication"));
-var authenticationOptions = builder.Configuration.GetSection("Authentication").Get<AuthenticationOptions>()
-    ?? throw new InvalidOperationException("Authentication configuration is missing");
-
-var permissionOptions = builder.Configuration.GetSection("Permissions").Get<PermissionOptions>()
-    ?? throw new InvalidOperationException("Permissions configuration is missing");
-
-builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
-var swaggerOptions = builder.Configuration.GetSection("Swagger").Get<SwaggerOptions>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = authenticationOptions.Authority;
-        options.Audience = authenticationOptions.Audience;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuers = authenticationOptions.ValidIssuers,
-            ValidAudiences = authenticationOptions.ValidAudiences,
-            ClockSkew = TimeSpan.FromMinutes(authenticationOptions.ClockSkewMinutes)
-        };
-    });
-
-builder.Services.AddAuthorizationPolicies(permissionOptions, authenticationOptions.RequiredScopes.Select(s => (s.Claim, s.Name)));
 
 builder.Services.AddCors(options =>
 {
@@ -59,26 +33,45 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi("v1", options =>
 {
-    options.AddDocumentTransformer<SecurityDocumentTransformer>();
-    options.AddOperationTransformer<SecurityOperationTransformer>();
+    options.AddDocumentTransformer<BearerDocumentTransformer>();
+    options.AddOperationTransformer<BearerOperationTransformer>();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddDocumentTransformer<SwaggerDocumentTransformer>();
+        options.AddOperationTransformer<SwaggerOperationTransformer>();
+    }
 });
 builder.Services.AddOpenApi("v2", options =>
 {
-    options.AddDocumentTransformer<SecurityDocumentTransformer>();
-    options.AddOperationTransformer<SecurityOperationTransformer>();
+    options.AddDocumentTransformer<BearerDocumentTransformer>();
+    options.AddOperationTransformer<BearerOperationTransformer>();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddDocumentTransformer<SwaggerDocumentTransformer>();
+        options.AddOperationTransformer<SwaggerOperationTransformer>();
+    }
 });
 builder.Services.AddValidation();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddAuthorization();
 
 builder.Services.AddLogging();
 builder.Services.AddMetrics();
 builder.Services.AddHealthChecks();
 
-builder.Services.AddSingleton<ErrorHandlingMiddleware>();
-builder.Services.AddSingleton<IdentityTokenLoggingMiddleware>();
-
 builder.Services.Configure<CartDatabaseOptions>(builder.Configuration.GetSection("ConnectionStrings"));
 builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Eventing"));
 builder.Services.Configure<CartSubscriberOptions>(builder.Configuration.GetSection("Eventing:CartService"));
+builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
+builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
+
+builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
+builder.Services.AddSingleton<ErrorHandlingMiddleware>();
+builder.Services.AddSingleton<IdentityTokenLoggingMiddleware>();
+
 builder.Services.AddCartServiceInfrastructure();
 builder.Services.AddCartServiceApplication();
 builder.Services.AddEventing();
@@ -90,24 +83,29 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-
-if (app.Environment.IsDevelopment())
-{
-    //leave swagger unprotected for dev purposes
-    app.MapOpenApi().AllowAnonymous();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint($"/openapi/v1.json", $"Cart API v1");
-        options.SwaggerEndpoint($"/openapi/v2.json", $"Cart API v2");
-        options.OAuthClientId(swaggerOptions?.ClientId);
-        options.OAuthUsePkce();
-        options.OAuthScopes([.. authenticationOptions.RequiredScopes.Select(s => s.FullName)]);
-    });
-}
-
 app.UseAuthentication();
 app.UseMiddleware<IdentityTokenLoggingMiddleware>();
 app.UseAuthorization();
+
+var openApi = app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+{
+    //swagger unprotected just for dev purposes
+    openApi.AllowAnonymous();
+    app.MapGet("/swagger/{**any}", () => Results.Redirect("/swagger/index.html"))
+        .ExcludeFromDescription()
+        .AllowAnonymous();
+
+    app.UseSwaggerUI(options =>
+    {
+        var swaggerOptions = app.Services.GetService<IOptions<SwaggerOptions>>()?.Value ?? new();
+        options.SwaggerEndpoint($"/openapi/v1.json", $"Cart API v1");
+        options.SwaggerEndpoint($"/openapi/v2.json", $"Cart API v2");
+        options.OAuthClientId(swaggerOptions.ClientId);
+        options.OAuthUsePkce();
+        options.OAuthScopes(swaggerOptions.Scopes);
+    });
+}
 
 app.UseHealthChecks("/health");
 app.MapCartEndpointsV1();

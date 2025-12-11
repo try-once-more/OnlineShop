@@ -15,7 +15,7 @@ namespace CartService.API.Endpoints
                 var group = app.MapGroup("/api/v2/cart")
                 .WithTags("Cart")
                 .WithGroupName("v2")
-                .RequireAuthorization(nameof(PermissionOptions.ReadRole));
+                .RequireAuthorization(nameof(Permissions.Read));
 
                 group.MapGet("/{cartId:guid}", GetCartInfoV2)
                     .WithName(nameof(GetCartInfoV2));

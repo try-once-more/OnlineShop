@@ -5,7 +5,7 @@ using Microsoft.OpenApi;
 
 namespace CartService.API.Configuration;
 
-internal sealed class SecurityDocumentTransformer : IOpenApiDocumentTransformer
+internal sealed class BearerDocumentTransformer : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
@@ -19,16 +19,22 @@ internal sealed class SecurityDocumentTransformer : IOpenApiDocumentTransformer
                 Type = SecuritySchemeType.Http,
                 Scheme = JwtBearerDefaults.AuthenticationScheme,
                 BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "Enter an existing JWT token"
+                In = ParameterLocation.Header
             };
 
-        var authOptions = context.ApplicationServices.GetRequiredService<IOptions<AuthenticationOptions>>();
-        var swaggerOptions = context.ApplicationServices.GetService<IOptions<SwaggerOptions>>();
+        return Task.CompletedTask;
+    }
+}
 
-        if (swaggerOptions != null)
-        {
-            document.Components.SecuritySchemes["oauth2"] =
+internal sealed class SwaggerDocumentTransformer : IOpenApiDocumentTransformer
+{
+    public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+        var swaggerOptions = context.ApplicationServices.GetService<IOptions<SwaggerOptions>>()?.Value ?? new();
+        document.Components.SecuritySchemes["oauth2"] =
                 new OpenApiSecurityScheme
                 {
                     Type = SecuritySchemeType.OAuth2,
@@ -36,13 +42,12 @@ internal sealed class SecurityDocumentTransformer : IOpenApiDocumentTransformer
                     {
                         AuthorizationCode = new OpenApiOAuthFlow
                         {
-                            AuthorizationUrl = new Uri(swaggerOptions.Value.AuthorizationUrl),
-                            TokenUrl = new Uri(swaggerOptions.Value.TokenUrl),
-                            Scopes = authOptions.Value.RequiredScopes.ToDictionary(i => i.FullName, i => i.Description ?? string.Empty)
+                            AuthorizationUrl = new Uri(swaggerOptions.AuthorizationUrl),
+                            TokenUrl = new Uri(swaggerOptions.TokenUrl),
+                            Scopes = swaggerOptions.Scopes.ToDictionary(i => i, i => string.Empty)
                         }
                     }
                 };
-        }
 
         return Task.CompletedTask;
     }

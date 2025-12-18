@@ -1,4 +1,4 @@
-using CatalogService.Application.Abstractions;
+﻿using CatalogService.Application.Abstractions;
 using CatalogService.Application.Events;
 using CatalogService.Application.Pipeline;
 using CatalogService.Events.Products;

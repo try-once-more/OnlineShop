@@ -1,8 +1,8 @@
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-using System.Text.Json;
 using static Eventing.Infrastructure.EventingOptions;
 
 namespace Eventing.Infrastructure.ServiceBus;

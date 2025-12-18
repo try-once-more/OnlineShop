@@ -1,4 +1,4 @@
-using CatalogService.Domain.Entities;
+﻿using CatalogService.Domain.Entities;
 using CatalogService.Domain.Exceptions;
 
 namespace CatalogService.Domain.Tests.Entities;
@@ -33,7 +33,7 @@ public class ProductTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public void Name_SetInvalid_ShouldThrowProductValidationException(string invalidName)
+    public void Name_SetInvalid_ShouldThrowProductValidationException(string? invalidName)
     {
         var product = new Product
         {

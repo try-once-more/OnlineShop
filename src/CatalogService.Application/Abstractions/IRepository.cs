@@ -1,5 +1,5 @@
+﻿using System.Linq.Expressions;
 using CatalogService.Domain.Entities;
-using System.Linq.Expressions;
 
 namespace CatalogService.Application.Abstractions.Repository;
 

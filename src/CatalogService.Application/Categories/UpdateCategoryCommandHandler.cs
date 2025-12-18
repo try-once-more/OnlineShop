@@ -1,9 +1,9 @@
+﻿using System.ComponentModel.DataAnnotations;
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Common;
 using CatalogService.Application.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Categories;
 

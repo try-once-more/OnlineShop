@@ -1,4 +1,4 @@
-namespace CartService.API.CartEndpoints.Contracts;
+﻿namespace CartService.API.CartEndpoints.Contracts;
 
 /// <summary>
 /// Represents a shopping cart with its items.

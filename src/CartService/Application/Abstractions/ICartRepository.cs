@@ -1,4 +1,4 @@
-using CartService.Application.Entities;
+﻿using CartService.Application.Entities;
 
 namespace CartService.Application.Abstractions;
 

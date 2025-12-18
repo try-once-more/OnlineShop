@@ -1,8 +1,8 @@
-﻿using CatalogService.API.Categories.Contracts;
+﻿using System.Text.Json;
+using CatalogService.API.Categories.Contracts;
 using CatalogService.Application.Categories;
 using CatalogService.Application.Common;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Text.Json;
 
 namespace CatalogService.API.Categories;
 

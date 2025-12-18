@@ -1,4 +1,5 @@
-﻿using CatalogService.API.Categories.Contracts;
+﻿using System.Reflection;
+using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Products.Contracts;
 using CatalogService.Application.Categories;
 using CatalogService.Application.Products;
@@ -7,7 +8,6 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi;
-using System.Reflection;
 
 namespace CatalogService.API.Configuration;
 

@@ -1,4 +1,6 @@
-﻿using Asp.Versioning;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net.Mime;
+using Asp.Versioning;
 using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
 using CatalogService.API.Configuration;
@@ -10,8 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.Annotations;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Mime;
 
 namespace CatalogService.API.Categories;
 
@@ -100,6 +100,7 @@ public class CategoriesController(IMediator mediator, IMapper mapper, ILinkBuild
         [FromBody, Required] AddCategoryRequest request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         logger.LogInformation(
             "Creating a new category: Name={CategoryName}, ImageUrl={ImageUrl}, ParentCategoryId={ParentCategoryId}",
             request.Name,

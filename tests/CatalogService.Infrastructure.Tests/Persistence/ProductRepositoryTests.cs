@@ -1,4 +1,4 @@
-using CatalogService.Application.Abstractions.Repository;
+﻿using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

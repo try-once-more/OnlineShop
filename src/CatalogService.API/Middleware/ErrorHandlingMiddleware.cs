@@ -1,4 +1,4 @@
-using CatalogService.Application.Exceptions;
+﻿using CatalogService.Application.Exceptions;
 
 namespace CatalogService.API.Middleware;
 

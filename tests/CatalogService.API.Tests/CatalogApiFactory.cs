@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,6 +14,7 @@ public class CatalogApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "IntegrationTests";
         builder.UseEnvironment(environment);
         builder.ConfigureAppConfiguration((context, config) =>
@@ -39,6 +40,7 @@ public class CatalogApiFactory : WebApplicationFactory<Program>
         });
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection.", Justification = "Database reset only")]
     internal async Task ResetDatabaseAsync()
     {
         var context = Services.GetRequiredService<DbContext>();

@@ -1,7 +1,7 @@
+﻿using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Eventing.Infrastructure.ServiceBus;
 

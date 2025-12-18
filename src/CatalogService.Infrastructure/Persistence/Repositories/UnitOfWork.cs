@@ -1,4 +1,4 @@
-using CatalogService.Application.Abstractions.Repository;
+﻿using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore.Storage;
 

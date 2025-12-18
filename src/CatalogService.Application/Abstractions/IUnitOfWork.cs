@@ -1,4 +1,4 @@
-namespace CatalogService.Application.Abstractions.Repository;
+﻿namespace CatalogService.Application.Abstractions.Repository;
 
 public interface IUnitOfWork : IDisposable
 {

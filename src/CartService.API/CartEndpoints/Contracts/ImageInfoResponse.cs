@@ -1,4 +1,4 @@
-namespace CartService.API.CartEndpoints.Contracts;
+﻿namespace CartService.API.CartEndpoints.Contracts;
 
 /// <summary>
 /// Represents image information for a cart item.

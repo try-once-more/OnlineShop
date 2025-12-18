@@ -1,4 +1,4 @@
-using CatalogService.Application.Categories;
+﻿using CatalogService.Application.Categories;
 using CatalogService.Domain.Entities;
 using Moq;
 

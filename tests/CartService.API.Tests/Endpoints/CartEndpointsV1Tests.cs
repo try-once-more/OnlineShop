@@ -1,8 +1,8 @@
+﻿using System.Net;
+using System.Net.Http.Json;
 using CartService.API.CartEndpoints.Contracts;
 using CartService.Application.Entities;
 using Moq;
-using System.Net;
-using System.Net.Http.Json;
 
 namespace CartService.API.Tests.Endpoints;
 

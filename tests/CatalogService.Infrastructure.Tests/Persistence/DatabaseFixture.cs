@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,6 +36,7 @@ public class DatabaseFixture : IAsyncLifetime
 
     public Task DisposeAsync() => ServiceProvider.DisposeAsync().AsTask();
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection.", Justification = "Database reset only")]
     internal static async Task ResetDatabaseAsync(DbContext context)
     {
         var schema = context.Model.GetDefaultSchema();

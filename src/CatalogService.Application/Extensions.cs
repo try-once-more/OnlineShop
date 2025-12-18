@@ -1,6 +1,6 @@
-﻿using CatalogService.Domain.Entities;
+﻿using System.Text.Json;
+using CatalogService.Domain.Entities;
 using Eventing.Abstraction;
-using System.Text.Json;
 
 namespace CatalogService.Application;
 

@@ -1,4 +1,4 @@
-using CatalogService.Application.Products;
+﻿using CatalogService.Application.Products;
 using CatalogService.Domain.Entities;
 using Moq;
 

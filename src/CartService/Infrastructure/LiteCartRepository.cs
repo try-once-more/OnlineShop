@@ -1,4 +1,4 @@
-using CartService.Application.Abstractions;
+﻿using CartService.Application.Abstractions;
 using CartService.Application.Entities;
 using LiteDB;
 
@@ -25,6 +25,7 @@ public class LiteCartRepository(ILiteDatabase database) : ICartRepository
 
     public Task SaveAsync(Cart cart, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(cart);
         var col = database.GetCollection<Cart>(Collection);
         col.Upsert(cart.Id, cart);
         return Task.CompletedTask;
@@ -32,6 +33,7 @@ public class LiteCartRepository(ILiteDatabase database) : ICartRepository
 
     public Task SaveAsync(IEnumerable<Cart> carts, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(carts);
         database.BeginTrans();
         var col = database.GetCollection<Cart>(Collection);
         foreach (var cart in carts)

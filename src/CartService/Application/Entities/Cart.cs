@@ -1,4 +1,4 @@
-namespace CartService.Application.Entities;
+﻿namespace CartService.Application.Entities;
 
 public class Cart : BaseEntity<Guid>
 {

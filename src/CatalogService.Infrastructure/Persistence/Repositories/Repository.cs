@@ -1,8 +1,8 @@
+﻿using System.Linq.Expressions;
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using CatalogService.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace CatalogService.Infrastructure.Persistence.Repositories;
 

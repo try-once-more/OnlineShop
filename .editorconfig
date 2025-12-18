@@ -222,12 +222,15 @@ trim_trailing_whitespace = false
 
 
 [tests/**/*.cs]
-dotnet_analyzer_diagnostic.category-Security.severity = warning
-
-dotnet_diagnostic.CA1062.severity = warning
-dotnet_diagnostic.CA2000.severity = warning
-dotnet_diagnostic.CA2002.severity = warning
-dotnet_diagnostic.CA2016.severity = warning
-dotnet_diagnostic.CA2017.severity = warning
-dotnet_diagnostic.CA2025.severity = warning
-dotnet_diagnostic.CA2026.severity = warning
+dotnet_analyzer_diagnostic.category-Security.severity = none
+dotnet_code_quality.ca1802.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.CA2002.severity = none
+dotnet_diagnostic.CA2016.severity = none
+dotnet_diagnostic.CA2017.severity = none
+dotnet_diagnostic.CA2025.severity = none
+dotnet_diagnostic.CA2026.severity = none
+dotnet_diagnostic.CA2208.severity = none
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.EF1002.severity = none

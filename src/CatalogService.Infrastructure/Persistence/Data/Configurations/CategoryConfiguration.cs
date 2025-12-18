@@ -1,6 +1,6 @@
-﻿using CatalogService.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using CatalogService.Domain.Entities;
 
 namespace CatalogService.Infrastructure.Persistence.Data.Configurations;
 

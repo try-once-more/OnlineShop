@@ -22,15 +22,8 @@ internal class EventProcessingService(
     }, LazyThreadSafetyMode.ExecutionAndPublication);
 
 
-    private bool isListening = false;
-
     public Task StartListeningAsync(CancellationToken cancellationToken = default)
     {
-        if (isListening)
-        {
-            return Task.CompletedTask;
-        }
-
         if (!subscriber.IsValueCreated)
         {
             subscriber.Value.RegisterHandler(serviceProvider.GetRequiredService<ProductDeletedEventPersistHandler>());

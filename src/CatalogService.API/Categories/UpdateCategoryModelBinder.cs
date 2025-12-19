@@ -10,24 +10,24 @@ internal class UpdateCategoryModelBinder : IModelBinder
 {
     private static readonly JsonDocumentOptions JsonOptions = new() { AllowTrailingCommas = true };
 
-    public async Task BindModelAsync(ModelBindingContext context)
+    public async Task BindModelAsync(ModelBindingContext bindingContext)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(bindingContext);
 
-        var idValue = context.ValueProvider.GetValue("id");
+        var idValue = bindingContext.ValueProvider.GetValue("id");
         if (idValue == ValueProviderResult.None || !int.TryParse(idValue.FirstValue, out var id) || id <= 0)
         {
-            context.ModelState.AddModelError(nameof(id), "Invalid id.");
-            context.Result = ModelBindingResult.Failed();
+            bindingContext.ModelState.AddModelError(nameof(id), "Invalid id.");
+            bindingContext.Result = ModelBindingResult.Failed();
             return;
         }
 
         try
         {
             using var doc = await JsonDocument.ParseAsync(
-                context.HttpContext.Request.Body,
+                bindingContext.HttpContext.Request.Body,
                 JsonOptions,
-                context.HttpContext.RequestAborted);
+                bindingContext.HttpContext.RequestAborted);
 
             var root = doc.RootElement;
             var elements = root.EnumerateObject();
@@ -51,12 +51,12 @@ internal class UpdateCategoryModelBinder : IModelBinder
                     : null
             };
 
-            context.Result = ModelBindingResult.Success(request);
+            bindingContext.Result = ModelBindingResult.Success(request);
         }
         catch (JsonException ex)
         {
-            context.ModelState.AddModelError(string.Empty, $"Invalid JSON: {ex.Message}");
-            context.Result = ModelBindingResult.Failed();
+            bindingContext.ModelState.AddModelError(string.Empty, $"Invalid JSON: {ex.Message}");
+            bindingContext.Result = ModelBindingResult.Failed();
         }
     }
 

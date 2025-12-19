@@ -46,7 +46,7 @@ namespace CatalogService.Domain.Entities
                 int level = 0;
                 for (var ancestor = value; ancestor != null; ancestor = ancestor.ParentCategory)
                 {
-                    if (ancestor == this)
+                    if (this.Equals(ancestor))
                         throw new CategoryValidationException("Category cannot be its own parent or a parent of its descendants.");
                     if (++level > 2)
                         throw new CategoryValidationException("Category hierarchy supports up to 2 levels only.");

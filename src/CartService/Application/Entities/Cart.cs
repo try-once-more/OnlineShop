@@ -13,7 +13,7 @@ public class Cart : BaseEntity<Guid>
     {
         ArgumentNullException.ThrowIfNull(itemToAdd);
 
-        var existingItem = items.FirstOrDefault(item => item == itemToAdd);
+        var existingItem = items.FirstOrDefault(item => item.Equals(itemToAdd));
         if (existingItem is null)
         {
             items.Add(itemToAdd);

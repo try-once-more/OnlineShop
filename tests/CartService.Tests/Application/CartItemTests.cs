@@ -57,7 +57,7 @@ public class CartItemTests
         var item2 = new CartItem { Id = 1, Name = "Test2", Price = 20m, Quantity = 10 };
 
         Assert.True(item1.Equals(item2));
-        Assert.True(item1 == item2);
+        Assert.True(item1.Equals(item2));
     }
 
     [Fact]

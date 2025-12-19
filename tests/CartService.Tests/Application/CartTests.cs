@@ -214,7 +214,7 @@ public class CartTests
         var cart2 = new Cart { Id = cartId };
 
         Assert.True(cart1.Equals(cart2));
-        Assert.True(cart1 == cart2);
+        Assert.True(cart1.Equals(cart2));
     }
 
     [Fact]

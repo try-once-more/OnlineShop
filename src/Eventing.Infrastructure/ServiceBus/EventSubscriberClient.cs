@@ -20,7 +20,7 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
 
         processor = new Lazy<ServiceBusProcessor>(() =>
         {
-            var processor = client.CreateProcessor(
+            var serviceBusProcessor = client.CreateProcessor(
                 topicName,
                 subscriptionName,
                 new ServiceBusProcessorOptions
@@ -32,14 +32,14 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
                     AutoCompleteMessages = false
                 });
 
-            processor.ProcessMessageAsync += ProcessMessageAsync;
-            processor.ProcessErrorAsync += args =>
+            serviceBusProcessor.ProcessMessageAsync += ProcessMessageAsync;
+            serviceBusProcessor.ProcessErrorAsync += args =>
             {
                 logger?.LogError(args.Exception, "Error processing events.");
                 return Task.CompletedTask;
             };
 
-            return processor;
+            return serviceBusProcessor;
         }, LazyThreadSafetyMode.ExecutionAndPublication);
     }
 

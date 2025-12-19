@@ -1,18 +1,13 @@
-﻿namespace CatalogService.Domain.Entities;
+﻿using System.Diagnostics.CodeAnalysis;
 
-public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquatable<T>
+namespace CatalogService.Domain.Entities;
+
+public abstract class BaseEntity<T> : IEqualityComparer<T>
 {
-
     /// <summary>
     /// Identifier of the entity
     /// </summary>
     public T? Id { get; init; }
-
-    public static bool operator ==(BaseEntity<T>? a, BaseEntity<T>? b)
-        => a is null ? b is null : a.Equals(b);
-
-    public static bool operator !=(BaseEntity<T>? a, BaseEntity<T>? b)
-        => !(a == b);
 
     public bool Equals(BaseEntity<T>? other) =>
         other is not null
@@ -26,4 +21,13 @@ public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquat
 
     public override int GetHashCode() =>
         EqualityComparer<T>.Default.Equals(Id, default) ? 0 : Id!.GetHashCode();
+
+    public bool Equals(T? x, T? y)
+    {
+        if (x is null && y is null) return true;
+        if (x is null || y is null) return false;
+        return x.Equals(y);
+    }
+
+    public int GetHashCode([DisallowNull] T obj) => obj?.GetHashCode() ?? 0;
 }

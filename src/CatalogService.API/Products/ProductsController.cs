@@ -128,6 +128,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// </summary>
     /// <param name="id">The ID of the product to update.</param>
     /// <param name="request">The product update data.</param>
+    /// <param name="command"></param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>No content</returns>
     /// <response code="204">Product updated successfull.</response>

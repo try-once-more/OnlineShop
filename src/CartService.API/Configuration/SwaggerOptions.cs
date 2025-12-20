@@ -1,4 +1,4 @@
-namespace CartService.API.Configuration;
+﻿namespace CartService.API.Configuration;
 
 internal sealed class SwaggerOptions
 {

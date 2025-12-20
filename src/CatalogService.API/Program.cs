@@ -1,4 +1,7 @@
-﻿using Asp.Versioning;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Asp.Versioning;
+using CatalogService.API;
 using CatalogService.API.Categories;
 using CatalogService.API.Categories.Contracts;
 using CatalogService.API.Common;
@@ -12,8 +15,6 @@ using Eventing.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
@@ -119,4 +120,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

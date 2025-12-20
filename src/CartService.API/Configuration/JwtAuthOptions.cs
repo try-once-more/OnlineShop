@@ -1,4 +1,4 @@
-namespace CartService.API.Configuration;
+﻿namespace CartService.API.Configuration;
 
 public sealed class JwtAuthOptions
 {

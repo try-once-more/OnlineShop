@@ -1,9 +1,9 @@
-﻿using CatalogService.Application.Abstractions.Repository;
+﻿using System.Linq.Expressions;
+using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System.Linq.Expressions;
 
 namespace CatalogService.Infrastructure.Tests.Persistence;
 

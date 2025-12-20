@@ -1,9 +1,9 @@
-﻿using Azure.Messaging.ServiceBus;
+﻿using System.Collections.Concurrent;
+using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
 
 namespace Eventing.Infrastructure.ServiceBus;
 

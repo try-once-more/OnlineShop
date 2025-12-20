@@ -22,7 +22,7 @@ internal class LiteEventRepository(ILiteDatabase database) : IEventRepository
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<BaseEvent>> GetPendingEventsAsync(int batchSize = 100, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<BaseEvent>> GetPendingEventsAsync(int batchSize, CancellationToken cancellationToken = default)
     {
         var col = database.GetCollection<EventWrapper>(Collection);
         var wrappers = col

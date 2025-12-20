@@ -1,4 +1,4 @@
-using CartService.Application;
+﻿using CartService.Application;
 using CartService.Application.Entities;
 
 namespace CartService.Tests.Application;
@@ -33,7 +33,7 @@ public class CartItemTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_WhenNameInvalid_ShouldThrowException(string name) =>
+    public void Create_WhenNameInvalid_ShouldThrowException(string? name) =>
         Assert.Throws<CartItemNameInvalidException>(() => new CartItem { Id = 1, Name = name, Price = 10m, Quantity = 1 });
 
     [Theory]
@@ -57,7 +57,7 @@ public class CartItemTests
         var item2 = new CartItem { Id = 1, Name = "Test2", Price = 20m, Quantity = 10 };
 
         Assert.True(item1.Equals(item2));
-        Assert.True(item1 == item2);
+        Assert.True(item1.Equals(item2));
     }
 
     [Fact]

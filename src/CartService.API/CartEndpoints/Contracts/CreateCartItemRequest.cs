@@ -1,5 +1,5 @@
+﻿using System.ComponentModel.DataAnnotations;
 using CartService.Application.Entities;
-using System.ComponentModel.DataAnnotations;
 
 namespace CartService.API.CartEndpoints.Contracts;
 

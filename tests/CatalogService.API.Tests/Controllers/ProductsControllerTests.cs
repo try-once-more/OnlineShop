@@ -1,6 +1,6 @@
-using CatalogService.API.Products.Contracts;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
+using CatalogService.API.Products.Contracts;
 
 namespace CatalogService.API.Tests.Controllers;
 

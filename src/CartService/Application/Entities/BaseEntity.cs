@@ -1,6 +1,6 @@
 ﻿namespace CartService.Application.Entities;
 
-public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquatable<T>
+public abstract class BaseEntity<T>
 {
     public required T Id
     {
@@ -14,10 +14,12 @@ public abstract class BaseEntity<T> : IEquatable<BaseEntity<T>> where T : IEquat
         }
     }
 
-    public static bool operator ==(BaseEntity<T>? a, BaseEntity<T>? b) => a is null ? b is null : a.Equals(b);
+    public override bool Equals(object? obj) =>
+        obj is BaseEntity<T> other &&
+        GetType() == other.GetType() &&
+        !EqualityComparer<T>.Default.Equals(Id, default) &&
+        EqualityComparer<T>.Default.Equals(Id, other.Id);
 
-    public static bool operator !=(BaseEntity<T>? a, BaseEntity<T>? b) => !(a == b);
-    public bool Equals(BaseEntity<T>? other) => other is not null && GetType() == other.GetType() && Id.Equals(other.Id);
-    public override bool Equals(object? obj) => obj is BaseEntity<T> other && Equals(other);
-    public override int GetHashCode() => Id.GetHashCode();
+    public override int GetHashCode() =>
+        HashCode.Combine(GetType(), EqualityComparer<T>.Default.GetHashCode(Id!));
 }

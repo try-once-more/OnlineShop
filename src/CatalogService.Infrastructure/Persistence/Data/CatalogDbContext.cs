@@ -1,4 +1,4 @@
-using CatalogService.Domain.Entities;
+﻿using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CatalogService.Infrastructure.Persistence.Data;

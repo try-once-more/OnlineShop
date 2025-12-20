@@ -1,10 +1,10 @@
+﻿using System.Security.Claims;
+using System.Text.Encodings.Web;
 using CatalogService.API.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 
 namespace CatalogService.API.Tests;
 

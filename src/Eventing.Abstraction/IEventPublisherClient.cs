@@ -1,4 +1,4 @@
-namespace Eventing.Abstraction;
+﻿namespace Eventing.Abstraction;
 
 public interface IEventPublisherClient
 {

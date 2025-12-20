@@ -1,3 +1,4 @@
+﻿using CartService.API;
 using CartService.API.Configuration;
 using CartService.API.Endpoints;
 using CartService.API.Middlewares;
@@ -111,4 +112,4 @@ app.UseHealthChecks("/health");
 app.MapCartEndpointsV1();
 app.MapCartEndpointsV2();
 
-app.Run();
+await app.RunAsync();

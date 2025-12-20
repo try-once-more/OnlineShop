@@ -1,4 +1,4 @@
-using CatalogService.Domain.Entities;
+﻿using CatalogService.Domain.Entities;
 using CatalogService.Domain.Exceptions;
 
 namespace CatalogService.Domain.Tests.Entities;
@@ -17,7 +17,7 @@ public class CategoryTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public void Name_SetEmptyOrWhitespace_ShouldThrowCategoryValidationException(string invalidName)
+    public void Name_SetEmptyOrWhitespace_ShouldThrowCategoryValidationException(string? invalidName)
     {
         var category = GetValidCategory();
         Assert.Throws<CategoryValidationException>(() => category.Name = invalidName);

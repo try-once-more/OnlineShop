@@ -1,4 +1,4 @@
-using CatalogService.Application.Abstractions;
+﻿using CatalogService.Application.Abstractions;
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Domain.Entities;
 using Eventing.Abstraction;

@@ -1,4 +1,4 @@
-using CatalogService.Application.Abstractions.Repository;
+﻿using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Infrastructure;
 using CatalogService.Infrastructure.Persistence.Data;
 using CatalogService.Infrastructure.Persistence.Repositories;

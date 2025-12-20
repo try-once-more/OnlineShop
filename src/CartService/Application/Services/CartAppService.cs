@@ -18,7 +18,7 @@ public class CartAppService(ICartRepository cartRepository) : ICartService
         ArgumentNullException.ThrowIfNull(item);
         var cart = await GetCartAsync(cartId, cancellationToken) ?? new Cart { Id = cartId };
         cart.AddItem(item);
-        await cartRepository.SaveAsync(cart);
+        await cartRepository.SaveAsync(cart, cancellationToken);
     }
 
     public async Task AddItemsAsync(Guid cartId, IEnumerable<CartItem> items, CancellationToken cancellationToken = default)
@@ -37,7 +37,7 @@ public class CartAppService(ICartRepository cartRepository) : ICartService
         var cart = await GetCartAsync(cartId, cancellationToken) ?? throw new CartNotFoundException(cartId);
         var item = cart.Items.FirstOrDefault(i => i.Id.Equals(itemId)) ?? throw new CartItemNotAddedException(itemId, cartId);
         item.Quantity = newQuantity;
-        await cartRepository.SaveAsync(cart);
+        await cartRepository.SaveAsync(cart, cancellationToken);
     }
 
     public async Task RemoveItemAsync(Guid cartId, int itemId, CancellationToken cancellationToken = default)
@@ -84,6 +84,7 @@ public class CartAppService(ICartRepository cartRepository) : ICartService
 
     public async Task<int> UpdateItemInCartsAsync(CartItem cartItem, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(cartItem);
         var carts = await cartRepository.GetCartsByItemIdAsync(cartItem.Id, cancellationToken);
         foreach (var item in carts.SelectMany(c => c.Items.Where(i => i.Id == cartItem.Id)))
         {

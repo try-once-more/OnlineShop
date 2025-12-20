@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -euo pipefail
+
+echo "Running dotnet format verification before push..."
+dotnet format OnlineShop.slnx --verify-no-changes
+
+echo "dotnet format check passed."

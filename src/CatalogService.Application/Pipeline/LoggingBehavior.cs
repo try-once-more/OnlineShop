@@ -1,6 +1,6 @@
+﻿using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace CatalogService.Application.Pipeline;
 
@@ -17,26 +17,19 @@ internal class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReq
 
         var requestName = typeof(TRequest).Name;
 
-        logger?.LogInformation("Handling {RequestName}", requestName);
+        logger?.LogInformation("Request {RequestName} started", requestName);
 
         var stopwatch = Stopwatch.StartNew();
 
         try
         {
-            var response = await next();
-
-            stopwatch.Stop();
-            logger?.LogInformation("Handled {RequestName} in {ElapsedMilliseconds}ms",
-                  requestName, stopwatch.ElapsedMilliseconds);
-
-            return response;
+            return await next();
         }
-        catch (Exception ex)
+        finally
         {
             stopwatch.Stop();
-            logger?.LogError(ex, "Error handling {RequestName} after {ElapsedMilliseconds}ms",
-                    requestName, stopwatch.ElapsedMilliseconds);
-            throw;
+            logger?.LogInformation("Request {RequestName} completed in {ElapsedMilliseconds} ms",
+                  requestName, stopwatch.ElapsedMilliseconds);
         }
     }
 }

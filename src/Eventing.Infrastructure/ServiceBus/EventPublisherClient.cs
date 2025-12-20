@@ -1,7 +1,7 @@
+﻿using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Eventing.Abstraction;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Eventing.Infrastructure.ServiceBus;
 
@@ -13,21 +13,13 @@ internal sealed class EventPublisherClient(ServiceBusClient client, string topic
     public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : BaseEvent
     {
         logger?.LogDebug("Publishing event {EventType} with MessageId={MessageId}", @event.EventType, @event.MessageId);
-        try
+        var payload = JsonSerializer.Serialize<BaseEvent>(@event);
+        var message = new ServiceBusMessage(payload)
         {
-            var payload = JsonSerializer.Serialize<BaseEvent>(@event);
-            var message = new ServiceBusMessage(payload)
-            {
-                MessageId = @event.MessageId.ToString(),
-            };
-            await sender.Value.SendMessageAsync(message, cancellationToken);
-            logger?.LogDebug("Published event {EventType} with MessageId={MessageId}.", @event.EventType, @event.MessageId);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Failed to publish event {EventType} with MessageId={MessageId}", @event.EventType, @event.MessageId);
-            throw;
-        }
+            MessageId = @event.MessageId.ToString(),
+        };
+        await sender.Value.SendMessageAsync(message, cancellationToken);
+        logger?.LogDebug("Published event {EventType} with MessageId={MessageId}.", @event.EventType, @event.MessageId);
     }
 
     public async ValueTask DisposeAsync()

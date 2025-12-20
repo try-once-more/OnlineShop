@@ -1,10 +1,11 @@
-using CatalogService.Application.Abstractions.Repository;
+﻿using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CatalogService.Infrastructure.Persistence.Repositories;
 
-internal class UnitOfWork(CatalogDbContext context, ICategoryRepository categories, IProductRepository products, IEventRepository events) : IUnitOfWork
+internal sealed class UnitOfWork(CatalogDbContext context, ICategoryRepository categories, IProductRepository products, IEventRepository events)
+    : IUnitOfWork, IDisposable
 {
     private readonly CatalogDbContext context = context ?? throw new ArgumentNullException(nameof(context));
 

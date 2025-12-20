@@ -1,4 +1,4 @@
-using CatalogService.API.Common;
+﻿using CatalogService.API.Common;
 
 namespace CatalogService.API.Categories.Contracts;
 

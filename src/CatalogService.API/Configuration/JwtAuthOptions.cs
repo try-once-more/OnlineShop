@@ -1,4 +1,4 @@
-namespace CatalogService.API.Configuration;
+﻿namespace CatalogService.API.Configuration;
 
 public sealed class JwtAuthOptions
 {

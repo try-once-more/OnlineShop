@@ -1,3 +1,4 @@
+﻿using System.ComponentModel.DataAnnotations;
 using CatalogService.Application.Abstractions.Repository;
 using CatalogService.Application.Common;
 using CatalogService.Application.Exceptions;
@@ -6,7 +7,6 @@ using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.Application.Products;
 

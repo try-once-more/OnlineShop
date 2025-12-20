@@ -1,3 +1,4 @@
+﻿using System.ComponentModel.DataAnnotations;
 using Asp.Versioning;
 using CatalogService.API.Common;
 using CatalogService.API.Configuration;
@@ -10,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.Annotations;
-using System.ComponentModel.DataAnnotations;
 
 namespace CatalogService.API.Products;
 
@@ -104,6 +104,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
         [FromBody, Required] AddProductRequest request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
         logger.LogInformation(
             "Creating a new product: Name={ProductName}, ImageUrl={ImageUrl}, CategoryId={CategoryId}, Price={ProductPrice}, Amount={ProductAmount}",
             request.Name,
@@ -127,6 +128,7 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
     /// </summary>
     /// <param name="id">The ID of the product to update.</param>
     /// <param name="request">The product update data.</param>
+    /// <param name="command"></param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>No content</returns>
     /// <response code="204">Product updated successfull.</response>

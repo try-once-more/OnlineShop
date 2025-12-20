@@ -1,6 +1,6 @@
 ﻿namespace CatalogService.Application.Abstractions.Repository;
 
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWork
 {
     ICategoryRepository Categories { get; }
     IProductRepository Products { get; }

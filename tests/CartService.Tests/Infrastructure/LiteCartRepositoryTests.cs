@@ -22,12 +22,12 @@ public class LiteCartRepositoryFixture : IAsyncLifetime
 
     public Task InitializeAsync() => Task.CompletedTask;
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
+        await ServiceProvider.DisposeAsync();
+
         if (File.Exists(dbPath))
             File.Delete(dbPath);
-
-        return ServiceProvider.DisposeAsync().AsTask();
     }
 }
 

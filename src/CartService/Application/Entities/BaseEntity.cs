@@ -1,8 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace CartService.Application.Entities;
 
-namespace CartService.Application.Entities;
-
-public abstract class BaseEntity<T> : IEqualityComparer<T>
+public abstract class BaseEntity<T>
 {
     public required T Id
     {
@@ -16,15 +14,12 @@ public abstract class BaseEntity<T> : IEqualityComparer<T>
         }
     }
 
-    public bool Equals(BaseEntity<T>? other) => other is not null && GetType() == other.GetType() && Id.Equals(other.Id);
-    public override bool Equals(object? obj) => obj is BaseEntity<T> other && Equals(other);
-    public override int GetHashCode() => Id.GetHashCode();
-    public bool Equals(T? x, T? y)
-    {
-        if (x is null && y is null) return true;
-        if (x is null || y is null) return false;
-        return x.Equals(y);
-    }
+    public override bool Equals(object? obj) =>
+        obj is BaseEntity<T> other &&
+        GetType() == other.GetType() &&
+        !EqualityComparer<T>.Default.Equals(Id, default) &&
+        EqualityComparer<T>.Default.Equals(Id, other.Id);
 
-    public int GetHashCode([DisallowNull] T obj) => obj?.GetHashCode() ?? 0;
+    public override int GetHashCode() =>
+        HashCode.Combine(GetType(), EqualityComparer<T>.Default.GetHashCode(Id!));
 }

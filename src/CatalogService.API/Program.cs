@@ -97,7 +97,7 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    ////swagger unprotected just for dev purposes
+    //swagger unprotected just for dev purposes
     app.UseSwagger(options =>
     {
         options.RouteTemplate = "openapi/{documentName}.json";

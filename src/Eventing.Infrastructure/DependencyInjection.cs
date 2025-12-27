@@ -29,7 +29,15 @@ public static class DependencyInjection
                     }
                 };
 
-                return new ServiceBusClient(options.FullyQualifiedNamespace, new DefaultAzureCredential(), clientOptions);
+                if (!string.IsNullOrWhiteSpace(options.FullyQualifiedNamespace))
+                {
+                    return new ServiceBusClient(options.FullyQualifiedNamespace, new DefaultAzureCredential(), clientOptions);
+                }
+                if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+                {
+                    return new ServiceBusClient(options.ConnectionString, clientOptions);
+                }
+                throw new InvalidOperationException("Either FullyQualifiedNamespace or ConnectionString must be configured.");
             });
         });
 

@@ -1,0 +1,113 @@
+name: online-shop
+services:
+  mssql:
+    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    restart: always
+    environment:
+      ACCEPT_EULA: ${ACCEPT_EULA}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: ${MSSQL_PID}
+    expose:
+      - "1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      online_shop_net:
+        aliases:
+          - mssql
+
+  mssql.init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    restart: on-failure:5
+    command: >
+      bash -c "
+      sleep ${SQL_WAIT_INTERVAL_SEC};
+      until /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P '${MSSQL_SA_PASSWORD}' -Q 'SELECT 1'; do
+        echo 'Waiting for SQL Server...'
+        sleep ${SQL_WAIT_INTERVAL_SEC}
+      done;
+      /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P '${MSSQL_SA_PASSWORD}' -d model -i /tmp/Init.sql"
+    depends_on:
+      - mssql
+    volumes:
+      - ${CATALOGSERVICE_DBINIT}:/tmp/Init.sql
+    networks:
+      online_shop_net:
+
+  servicebus:
+    container_name: servicebus
+    restart: always
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    volumes:
+      - ${SERVICEBUS_CONFIG}:/ServiceBus_Emulator/ConfigFiles/Config.json
+    expose:
+      - "5672"
+      - "5300"
+    environment:
+      SQL_SERVER: mssql
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      ACCEPT_EULA: ${ACCEPT_EULA}
+      SQL_WAIT_INTERVAL: ${SQL_WAIT_INTERVAL_SEC}
+    depends_on:
+      - mssql
+    networks:
+      online_shop_net:
+        aliases:
+          - servicebus
+
+  cartservice.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTP_PORTS=8080
+    expose:
+      - "8080"
+    restart: unless-stopped
+    volumes:
+      - litedb_data:/app/litedb_data
+      - ${CARTSERVICE_CONFIG}:/app/appsettings.json:ro
+    depends_on:
+      - servicebus
+    networks:
+      online_shop_net:
+        aliases:
+          - cartservice.api
+
+  catalogservice.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTP_PORTS=8080
+    expose:
+      - "8080"
+    restart: unless-stopped
+    volumes:
+      - ${CATALOGSERVICE_CONFIG}:/app/appsettings.json:ro
+    depends_on:
+      - mssql
+      - servicebus
+    networks:
+      online_shop_net:
+        aliases:
+          - catalogservice.api
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "7010:7010"
+      - "7011:7011"
+    restart: always
+    volumes:
+      - ${NGINX_CONFIG}:/etc/nginx/nginx.conf:ro
+      - ${NGINX_CERTS_PATH}:/etc/nginx/certs:ro
+    depends_on:
+      - cartservice.api
+      - catalogservice.api
+    networks:
+      online_shop_net:
+
+volumes:
+  litedb_data:
+  mssql_data:
+
+networks:
+  online_shop_net:

@@ -6,7 +6,8 @@ public record EventingOptions
 {
     private static readonly ServiceBusRetryOptions DefaultRetryOptions = new();
 
-    public required string FullyQualifiedNamespace { get; init; }
+    public string? FullyQualifiedNamespace { get; init; }
+    public string? ConnectionString { get; init; }
     public EventingRetryOptions RetryOptions { get; init; } = new();
     public EventingProcessorOptions ProcessorOptions { get; init; } = new();
 

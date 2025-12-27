@@ -5,10 +5,8 @@
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/Solution Items/">
-    <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
-    <File Path="Scripts/migration.sql" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/CartService.API/CartService.API.csproj" />
@@ -29,4 +27,10 @@
     <Project Path="tests/CatalogService.Domain.Tests/CatalogService.Domain.Tests.csproj" />
     <Project Path="tests/CatalogService.Infrastructure.Tests/CatalogService.Infrastructure.Tests.csproj" />
   </Folder>
+  <Project Path="containers/docker-compose.dcproj">
+    <Platform Project="AnyCPU" />
+    <Build Solution="*|x64" />
+    <Build Solution="*|x86" />
+    <Build Solution="Release|Any CPU" />
+  </Project>
 </Solution>

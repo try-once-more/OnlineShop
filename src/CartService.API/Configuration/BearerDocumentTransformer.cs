@@ -34,6 +34,14 @@ internal sealed class SwaggerDocumentTransformer : IOpenApiDocumentTransformer
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
         var swaggerOptions = context.ApplicationServices.GetService<IOptions<SwaggerOptions>>()?.Value ?? new();
+        var original = new Uri(document.Servers[0].Url);
+        var builder = new UriBuilder(original)
+        {
+            Scheme = swaggerOptions.Scheme ?? original.Scheme,
+            Port = swaggerOptions.Port ?? original.Port
+        };
+        document.Servers[0].Url = builder.Uri.ToString();
+
         document.Components.SecuritySchemes["oauth2"] =
                 new OpenApiSecurityScheme
                 {

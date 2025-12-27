@@ -4,8 +4,12 @@ namespace CatalogService.API;
 
 internal sealed class EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger) : BackgroundService
 {
+    private readonly TimeSpan _delay = TimeSpan.FromMinutes(1);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(_delay, stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -19,7 +23,7 @@ internal sealed class EventProcessor(IServiceScopeFactory scopeFactory, ILogger<
                 logger.LogError(ex, "Event processing loop error");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(_delay, stoppingToken);
         }
     }
 }

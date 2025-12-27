@@ -1,0 +1,13 @@
+services:
+  cartservice.api:
+    image: cartserviceapi
+    build:
+      context: ..
+      dockerfile: src/CartService.API/Dockerfile
+
+  catalogservice.api:
+    image: catalogserviceapi
+    build:
+      context: ..
+      dockerfile: src/CatalogService.API/Dockerfile
+

@@ -176,4 +176,51 @@ public class ProductsController(IMediator mediator, IMapper mapper, ILinkBuilder
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Get product properties for a specific product.
+    /// </summary>
+    /// <param name="id">The ID of the product.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Dictionary of product properties (key-value pairs)</returns>
+    /// <response code="200">Returns product properties.</response>
+    /// <response code="400">Invalid request data.</response>
+    /// <response code="404">Product not found.</response>
+    [HttpGet("{id:int}/properties", Name = nameof(GetProductProperties))]
+    [ProducesResponseType<IReadOnlyCollection<ProductPropertyResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyCollection<ProductPropertyResponse>>> GetProductProperties(
+        [FromRoute, Required, Range(1, int.MaxValue)] int id,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Retrieving properties for product with ID {ProductId}", id);
+        
+        var query = new GetProductByIdQuery { Id = id };
+        var product = await mediator.Send(query, cancellationToken);
+
+        if (product is null)
+        {
+            logger.LogWarning("Product with ID {ProductId} not found", id);
+            return NotFound();
+        }
+
+        // TODO: Replace with actual retrieval
+        var properties = new List<ProductPropertyResponse>
+        {
+            new("Brand", "Samsung"),
+            new("Model", "Galaxy S10"),
+            new("Color", "Black"),
+            new("Storage", "128GB"),
+            new("RAM", "8GB"),
+            new("Screen", "6.1 inch"),
+            new("Battery", "3400 mAh"),
+            new("Camera", "12MP + 16MP + 12MP"),
+            new("OS", "Android 9.0"),
+            new("Warranty", "2 years")
+        };
+
+        logger.LogInformation("Retrieved {Count} properties for product with ID {ProductId}", properties.Count, id);
+        return Ok(properties);
+    }
 }

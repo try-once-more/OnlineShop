@@ -18,6 +18,12 @@ internal sealed class EventPublisherClient(ServiceBusClient client, string topic
         {
             MessageId = @event.MessageId.ToString(),
         };
+
+        if (!string.IsNullOrWhiteSpace(@event.CorrelationId))
+        {
+            message.CorrelationId = @event.CorrelationId;
+        }
+
         await sender.Value.SendMessageAsync(message, cancellationToken);
         logger?.LogDebug("Published event {EventType} with MessageId={MessageId}.", @event.EventType, @event.MessageId);
     }

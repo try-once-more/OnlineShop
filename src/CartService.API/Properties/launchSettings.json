@@ -3,7 +3,8 @@
     "https": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AZURE_EXPERIMENTAL_ENABLE_ACTIVITY_SOURCE": "true"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:6010"

@@ -14,9 +14,13 @@ internal sealed class EventProcessor(IServiceScopeFactory scopeFactory, ILogger<
         {
             try
             {
+                logger.LogDebug("Starting event publishing");
+
                 using var scope = scopeFactory.CreateScope();
                 var processor = scope.ServiceProvider.GetRequiredService<IEventPublisherService>();
                 await processor.PublishPendingAsync(cancellationToken: stoppingToken);
+
+                logger.LogDebug("Completed event publishing");
             }
             catch (Exception ex)
             {

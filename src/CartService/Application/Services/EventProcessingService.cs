@@ -33,7 +33,6 @@ internal class EventProcessingService(
         return subscriber.Value.StartListeningAsync(cancellationToken);
     }
 
-
     public Task StopListeningAsync(CancellationToken cancellationToken = default) =>
         subscriber.Value.StopListeningAsync(cancellationToken);
 
@@ -46,18 +45,24 @@ internal class EventProcessingService(
 
         foreach (var @event in events)
         {
-            var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(@event.GetType());
-            dynamic? handler = scope.ServiceProvider.GetService(handlerType);
-
-            if (handler is null)
+            using (logger?.BeginScope(new Dictionary<string, object>
             {
-                logger?.LogWarning("No handler registered for {ClrName}. Event {EventType} with MessageId={MessageId} cannot be processed.",
-                    handlerType.Name, @event.EventType, @event.MessageId);
-                continue;
-            }
+                ["CorrelationId"] = @event.CorrelationId
+            }))
+            {
+                var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(@event.GetType());
+                dynamic? handler = scope.ServiceProvider.GetService(handlerType);
 
-            await handler.HandleAsync((dynamic)@event, cancellationToken);
-            await eventRepository.DeleteEventAsync(@event, cancellationToken);
+                if (handler is null)
+                {
+                    logger?.LogWarning("No handler registered for {ClrName}. Event {EventType} with MessageId={MessageId} cannot be processed.",
+                        handlerType.Name, @event.EventType, @event.MessageId);
+                    continue;
+                }
+
+                await handler.HandleAsync((dynamic)@event, cancellationToken);
+                await eventRepository.DeleteEventAsync(@event, cancellationToken);
+            }
         }
     }
 }

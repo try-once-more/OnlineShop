@@ -35,6 +35,7 @@ internal sealed class EventPublisherService(
         foreach (var entity in entities)
         {
             logger?.LogDebug("Publishing event {Id} of type {EventType}", entity.Id, entity.EventType);
+            IDisposable? scope = null;
             try
             {
                 entity.ProcessedAtUtc = DateTime.UtcNow;
@@ -42,11 +43,16 @@ internal sealed class EventPublisherService(
                 entity.Error = string.Empty;
                 var @event = entity.ToEvent();
 
+                scope = logger?.BeginScope(new Dictionary<string, object>
+                {
+                    ["CorrelationId"] = @event.CorrelationId
+                });
+
                 await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
                 await unitOfWork.Events.UpdateAsync(entity, cancellationToken);
                 await publisherClient.PublishAsync(@event, cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                logger?.LogInformation("Successfully published event {Id} of type {EventType}", entity.Id, entity.EventType);
+                logger?.LogDebug("Successfully published event {Id} of type {EventType}", entity.Id, entity.EventType);
             }
             catch (Exception ex)
             {
@@ -62,6 +68,10 @@ internal sealed class EventPublisherService(
                 {
                     logger?.LogError(updateEx, "Failed to write error status for event {Id}", entity.Id);
                 }
+            }
+            finally
+            {
+                scope?.Dispose();
             }
         }
     }

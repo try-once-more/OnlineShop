@@ -9,6 +9,7 @@ public abstract record BaseEvent
     public Guid MessageId { get; init; } = Guid.NewGuid();
     public string EventType { get; }
     public DateTime OccurredAtUtc { get; init; } = DateTime.UtcNow;
+    public string? CorrelationId { get; init; }
 
     protected BaseEvent([DisallowNull] string eventType)
     {

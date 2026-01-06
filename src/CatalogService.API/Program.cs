@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asp.Versioning;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using CatalogService.API;
 using CatalogService.API.Categories;
 using CatalogService.API.Categories.Contracts;
@@ -15,9 +16,40 @@ using Eventing.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
+
+
+var appInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddOpenTelemetry()
+        .UseAzureMonitor(options => options.ConnectionString = appInsightsConnectionString)
+        .ConfigureResource(options =>
+        {
+            options.AddAttributes(new Dictionary<string, object> { { "service.name", "CatalogService.API" } });
+        })
+        .WithTracing(tracing =>
+        {
+            tracing.AddAspNetCoreInstrumentation();
+            tracing.AddHttpClientInstrumentation();
+            tracing.AddSource("Azure.*");
+        })
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation());
+}
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration.ReadFrom.Configuration(context.Configuration);
+});
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -69,6 +101,7 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
+builder.Services.AddTransient<LoggingMiddleware>();
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
 
@@ -81,6 +114,7 @@ builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swa
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
 builder.Services.AddEventing();
+builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 
 builder.Services.AddMapper();
@@ -94,6 +128,8 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseMiddleware<LoggingMiddleware>();
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {

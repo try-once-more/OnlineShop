@@ -7,6 +7,7 @@ using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shared.Context.Correlation;
 
 namespace CatalogService.Application.Products;
 
@@ -62,7 +63,11 @@ public record UpdateProductCommand : IValidatableObject, IRequest
     }
 }
 
-internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<UpdateProductCommandHandler>? logger = default)
+internal class UpdateProductCommandHandler(
+    IUnitOfWork unitOfWork,
+    ICorrelationProvider correlationProvider,
+    IOptions<CatalogPublisherOptions> options,
+    ILogger<UpdateProductCommandHandler>? logger = default)
     : IRequestHandler<UpdateProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -117,7 +122,8 @@ internal class UpdateProductCommandHandler(IUnitOfWork unitOfWork, IOptions<Cata
             Amount = product.Amount,
             CategoryId = product.Category.Id,
             Description = product.Description,
-            ImageUrl = product.ImageUrl
+            ImageUrl = product.ImageUrl,
+            CorrelationId = correlationProvider.CorrelationId
         }.ToEventEntity();
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);

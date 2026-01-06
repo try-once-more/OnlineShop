@@ -1,4 +1,5 @@
-﻿using CartService.API;
+﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using CartService.API;
 using CartService.API.Configuration;
 using CartService.API.Endpoints;
 using CartService.API.Middlewares;
@@ -8,9 +9,40 @@ using Eventing.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
+
+
+var appInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddOpenTelemetry()
+        .UseAzureMonitor(options => options.ConnectionString = appInsightsConnectionString)
+        .ConfigureResource(options =>
+        {
+            options.AddAttributes(new Dictionary<string, object> { { "service.name", "CartService.API" } });
+        })
+        .WithTracing(tracing =>
+        {
+            tracing.AddAspNetCoreInstrumentation();
+            tracing.AddHttpClientInstrumentation();
+            tracing.AddSource("Azure.*");
+        })
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation());
+}
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration.ReadFrom.Configuration(context.Configuration);
+});
 
 builder.Services.AddCors(options =>
 {
@@ -72,10 +104,12 @@ builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtB
 builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 builder.Services.AddSingleton<IdentityTokenLoggingMiddleware>();
+builder.Services.AddSingleton<LoggingMiddleware>();
 
 builder.Services.AddCartServiceInfrastructure();
 builder.Services.AddCartServiceApplication();
 builder.Services.AddEventing();
+builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
 
@@ -84,6 +118,9 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseMiddleware<LoggingMiddleware>();
+app.UseSerilogRequestLogging();
+
 app.UseAuthentication();
 app.UseMiddleware<IdentityTokenLoggingMiddleware>();
 app.UseAuthorization();

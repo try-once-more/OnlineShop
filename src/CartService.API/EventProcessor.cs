@@ -15,7 +15,9 @@ internal sealed class EventProcessor(IEventProcessingService eventProcessingServ
         {
             try
             {
+                logger.LogDebug("Starting event processing");
                 await eventProcessingService.ProcessPendingEventsAsync(100, stoppingToken);
+                logger.LogDebug("Completed event processing");
             }
             catch (Exception ex)
             {

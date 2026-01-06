@@ -64,38 +64,44 @@ internal sealed class EventSubscriberClient : IEventSubscriberClient, IAsyncDisp
 
     private async Task ProcessMessageAsync(ProcessMessageEventArgs args)
     {
-        var messageId = args.Message.MessageId;
-        logger?.LogDebug("Received event with MessageId={MessageId}", messageId);
-        try
+        using (logger?.BeginScope(new Dictionary<string, object>
         {
-            BaseEvent? @event = JsonSerializer.Deserialize<BaseEvent>(args.Message.Body);
-            if (@event is null)
+            ["CorrelationId"] = args.Message.CorrelationId
+        }))
+        {
+            var messageId = args.Message.MessageId;
+            logger?.LogDebug("Received event with MessageId={MessageId}", messageId);
+            try
             {
-                logger?.LogWarning("Unable to deserialize event with MessageId={MessageId}. Dead-lettering.", messageId);
-                await args.DeadLetterMessageAsync(args.Message, "Unable to deserialize event.");
-                return;
-            }
+                BaseEvent? @event = JsonSerializer.Deserialize<BaseEvent>(args.Message.Body);
+                if (@event is null)
+                {
+                    logger?.LogWarning("Unable to deserialize event with MessageId={MessageId}. Dead-lettering.", messageId);
+                    await args.DeadLetterMessageAsync(args.Message, "Unable to deserialize event.");
+                    return;
+                }
 
-            logger?.LogDebug("Processing event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
-
-            var type = @event.GetType();
-            if (handlers.TryGetValue(type, out var invoker))
-            {
-                await invoker.InvokeAsync(@event, args.CancellationToken);
                 logger?.LogDebug("Processing event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
-            }
-            else
-            {
-                logger?.LogWarning("Unable to process event {EventType} with MessageId={MessageId}. No handler registered for {Type}",
-                    @event.EventType, messageId, type.Name);
-            }
 
-            await args.CompleteMessageAsync(args.Message);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Error processing event with MessageId={MessageId}", messageId);
-            await args.AbandonMessageAsync(args.Message);
+                var type = @event.GetType();
+                if (handlers.TryGetValue(type, out var invoker))
+                {
+                    await invoker.InvokeAsync(@event, args.CancellationToken);
+                    logger?.LogDebug("Processed event {EventType} with MessageId={MessageId}", @event.EventType, messageId);
+                }
+                else
+                {
+                    logger?.LogWarning("Unable to process event {EventType} with MessageId={MessageId}. No handler registered for {Type}",
+                        @event.EventType, messageId, type.Name);
+                }
+
+                await args.CompleteMessageAsync(args.Message);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Error processing event with MessageId={MessageId}", messageId);
+                await args.AbandonMessageAsync(args.Message);
+            }
         }
     }
 

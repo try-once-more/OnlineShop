@@ -6,6 +6,7 @@ using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shared.Context.Correlation;
 
 namespace CatalogService.Application.Products;
 
@@ -54,7 +55,11 @@ public record AddProductCommand : IRequest<Product>
     public required int Amount { get; init; }
 }
 
-internal class AddProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<AddProductCommandHandler>? logger = default)
+internal class AddProductCommandHandler(
+    IUnitOfWork unitOfWork,
+    IOptions<CatalogPublisherOptions> options,
+    ICorrelationProvider correlationProvider,
+    ILogger<AddProductCommandHandler>? logger = default)
     : IRequestHandler<AddProductCommand, Product>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -105,7 +110,8 @@ internal class AddProductCommandHandler(IUnitOfWork unitOfWork, IOptions<Catalog
             Amount = product.Amount,
             CategoryId = product.Category.Id,
             Description = product.Description,
-            ImageUrl = product.ImageUrl
+            ImageUrl = product.ImageUrl,
+            CorrelationId = correlationProvider.CorrelationId,
         }.ToEventEntity();
 
         await unitOfWork.Events.AddAsync(entity, cancellationToken);

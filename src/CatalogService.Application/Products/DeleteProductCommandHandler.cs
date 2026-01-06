@@ -4,6 +4,7 @@ using CatalogService.Events.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shared.Context.Correlation;
 
 namespace CatalogService.Application.Products;
 
@@ -20,7 +21,11 @@ public record DeleteProductCommand : IRequest
     public required int Id { get; init; }
 }
 
-internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, IOptions<CatalogPublisherOptions> options, ILogger<DeleteProductCommandHandler>? logger = default)
+internal class DeleteProductCommandHandler(
+    IUnitOfWork unitOfWork, 
+    ICorrelationProvider correlationProvider,
+    IOptions<CatalogPublisherOptions> options, 
+    ILogger<DeleteProductCommandHandler>? logger = default)
     : IRequestHandler<DeleteProductCommand>
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -45,7 +50,8 @@ internal class DeleteProductCommandHandler(IUnitOfWork unitOfWork, IOptions<Cata
     {
         var @event = new ProductDeletedEvent
         {
-            Id = request.Id
+            Id = request.Id,
+            CorrelationId = correlationProvider.CorrelationId
         }.ToEventEntity();
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);

@@ -19,6 +19,7 @@
     <Project Path="src/CatalogService.Infrastructure/CatalogService.Infrastructure.csproj" />
     <Project Path="src/Eventing.Abstraction/Eventing.Abstraction.csproj" />
     <Project Path="src/Eventing.Infrastructure/Eventing.Infrastructure.csproj" />
+    <Project Path="src/Shared.Context/Shared.Context.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/CartService.API.Tests/CartService.API.Tests.csproj" />

@@ -10,6 +10,7 @@
     <ProjectReference Include="..\CatalogService.Domain\CatalogService.Domain.csproj" />
     <ProjectReference Include="..\CatalogService.Events\CatalogService.Events.csproj" />
     <ProjectReference Include="..\Eventing.Abstraction\Eventing.Abstraction.csproj" />
+    <ProjectReference Include="..\Shared.Context\Shared.Context.csproj" />
   </ItemGroup>
 
   <ItemGroup>

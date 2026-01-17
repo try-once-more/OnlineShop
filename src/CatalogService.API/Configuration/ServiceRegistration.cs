@@ -40,7 +40,7 @@ internal static class ServiceRegistration
                 options.SwaggerDoc("v1", new() { Title = "Catalog Service API", Version = "v1" });
 
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
                 if (File.Exists(xmlPath))
                     options.IncludeXmlComments(xmlPath);
 

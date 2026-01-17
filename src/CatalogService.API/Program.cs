@@ -21,6 +21,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 
+[assembly: HotChocolate.Module("Types")]
+
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
 
@@ -66,7 +68,7 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
-builder.Services.AddValidation();
+ValidationServiceCollectionExtensions.AddValidation(builder.Services);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddAuthorization();
 
@@ -121,6 +123,22 @@ builder.Services.AddMapper();
 
 builder.Services.AddSwagger(builder);
 
+builder.Services.AddGraphQLServer()
+    .AddAuthorization()
+    .AddMutationConventions()
+    .AddQueryContext()
+    .AddDbContextCursorPagingProvider()
+    .AddTypes()
+    .AddProjections()
+    .AddFiltering()
+    .AddSorting()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.DefaultPageSize = 20;
+        opt.MaxPageSize = 999;
+        opt.IncludeTotalCount = false;
+    });
+
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
 builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();
 var app = builder.Build();
@@ -155,5 +173,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGraphQL("/graphql");
 
 await app.RunAsync();

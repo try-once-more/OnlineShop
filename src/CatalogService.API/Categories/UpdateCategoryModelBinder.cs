@@ -60,20 +60,20 @@ internal class UpdateCategoryModelBinder : IModelBinder
         }
     }
 
-    private static Optional<T> GetOptionalProperty<T>(
+    private static Application.Common.Optional<T> GetOptionalProperty<T>(
         IEnumerable<JsonProperty> elements,
         string name,
         Func<JsonElement, T> convertFn)
     {
         if (!TryGetProperty(elements, name, out var property))
-            return new Optional<T>();
+            return new Application.Common.Optional<T>();
 
         if (property.Value.ValueKind == JsonValueKind.Null)
-            return new Optional<T>(default);
+            return new Application.Common.Optional<T>(default);
 
         try
         {
-            return new Optional<T>(convertFn(property.Value));
+            return new Application.Common.Optional<T>(convertFn(property.Value));
         }
         catch (Exception ex)
         {

@@ -3,8 +3,8 @@ using CatalogService.Domain.Entities;
 
 namespace CatalogService.Application.Abstractions.Repository;
 
-public interface ICategoryRepository : IRepository<Category, int>;
-public interface IProductRepository : IRepository<Product, int>;
+public interface ICategoryRepository : IRepository<Category, int>, IQueryableRepository<Category>;
+public interface IProductRepository : IRepository<Product, int>, IQueryableRepository<Product>;
 public interface IEventRepository : IRepository<Event, Guid>;
 
 public interface ISort<TEntity>

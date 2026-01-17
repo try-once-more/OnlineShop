@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using Shared.Context.Correlation;
 
 namespace CatalogService.Application.Tests;
 
@@ -12,6 +13,7 @@ public abstract class HandlerTestBase
     protected readonly Mock<ICategoryRepository> MockCategoryRepository = new();
     protected readonly Mock<IProductRepository> MockProductRepository = new();
     protected readonly Mock<IOptions<CatalogPublisherOptions>> MockCatalogPublisherOptions = new();
+    protected readonly Mock<ICorrelationProvider> MockCorrelationProvider = new();
     protected readonly ISender Sender;
 
     protected HandlerTestBase()
@@ -24,6 +26,7 @@ public abstract class HandlerTestBase
         services.AddCatalogServiceApplication();
         services.AddScoped(_ => MockUnitOfWork.Object);
         services.AddSingleton(_ => MockCatalogPublisherOptions.Object);
+        services.AddSingleton(_ => MockCorrelationProvider.Object);
 
         Sender = services.BuildServiceProvider().GetRequiredService<ISender>();
     }

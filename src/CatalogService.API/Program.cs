@@ -112,6 +112,7 @@ builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Ev
 builder.Services.Configure<CatalogPublisherOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
 builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
 builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
+builder.Services.Configure<GraphQLOptions>(builder.Configuration.GetSection("GraphQL"));
 
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
@@ -122,6 +123,8 @@ builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
 
 builder.Services.AddSwagger(builder);
+
+var graphqlOptions = builder.Configuration.GetSection("GraphQL").Get<GraphQLOptions>() ?? new();
 
 builder.Services.AddGraphQLServer()
     .AddAuthorization()
@@ -134,10 +137,16 @@ builder.Services.AddGraphQLServer()
     .AddSorting()
     .ModifyPagingOptions(opt =>
     {
-        opt.DefaultPageSize = 20;
-        opt.MaxPageSize = 999;
-        opt.IncludeTotalCount = false;
-    });
+        opt.DefaultPageSize = graphqlOptions.DefaultPageSize;
+        opt.MaxPageSize = graphqlOptions.MaxPageSize;
+        opt.IncludeTotalCount = graphqlOptions.IncludeTotalCount;
+    })
+    .ModifyRequestOptions(opt =>
+    {
+        opt.ExecutionTimeout = TimeSpan.FromSeconds(graphqlOptions.ExecutionTimeoutSeconds);
+        opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
+    })
+    .AddMaxExecutionDepthRule(graphqlOptions.MaxAllowedExecutionDepth, skipIntrospectionFields: true);
 
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
 builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();

@@ -29,15 +29,15 @@ internal class CategoryRepository(CatalogDbContext context)
 
     public async override Task<IReadOnlyCollection<Category>> ListAsync(QueryOptions<Category>? options = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<Category> query = DbSet
+        IQueryable<Category> query = DbSet.AsNoTracking()
             .Include(e => e.ParentCategory)
             .ThenInclude(c => c.ParentCategory);
 
         if (!options.HasValue)
-            return await query.AsNoTracking().ToListAsync(cancellationToken);
+            return await query.ToListAsync(cancellationToken);
 
         if (options.Value.Filter != null)
-            query = query.AsNoTracking().Where(options.Value.Filter);
+            query = query.Where(options.Value.Filter);
 
         if (options.Value.OrderBy != null)
         {
@@ -55,7 +55,7 @@ internal class CategoryRepository(CatalogDbContext context)
         if (options.Value.Take.HasValue)
             query = query.Take(options.Value.Take.Value);
 
-        return await query.AsNoTracking().ToListAsync(cancellationToken);
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async override Task AddAsync(Category entity, CancellationToken cancellationToken = default)
@@ -111,4 +111,6 @@ internal class CategoryRepository(CatalogDbContext context)
         DbSet.UpdateRange(items);
         await Context.SaveChangesAsync(cancellationToken);
     }
+
+    IQueryable<Category> IQueryableRepository<Category>.AsQueryable() => DbSet.AsNoTracking();
 }

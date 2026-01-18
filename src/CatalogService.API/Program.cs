@@ -21,6 +21,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 
+[assembly: HotChocolate.Module("Types")]
+
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.UseKestrelHttpsConfiguration();
 
@@ -66,7 +68,7 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
-builder.Services.AddValidation();
+ValidationServiceCollectionExtensions.AddValidation(builder.Services);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddAuthorization();
 
@@ -110,6 +112,7 @@ builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Ev
 builder.Services.Configure<CatalogPublisherOptions>(builder.Configuration.GetSection("Eventing:CatalogService"));
 builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
 builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
+builder.Services.Configure<GraphQLOptions>(builder.Configuration.GetSection("GraphQL"));
 
 builder.Services.AddCatalogServiceInfrastructure();
 builder.Services.AddCatalogServiceApplication();
@@ -120,6 +123,30 @@ builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
 
 builder.Services.AddSwagger(builder);
+
+var graphqlOptions = builder.Configuration.GetSection("GraphQL").Get<GraphQLOptions>() ?? new();
+
+builder.Services.AddGraphQLServer()
+    .AddAuthorization()
+    .AddMutationConventions()
+    .AddQueryContext()
+    .AddDbContextCursorPagingProvider()
+    .AddTypes()
+    .AddProjections()
+    .AddFiltering()
+    .AddSorting()
+    .ModifyPagingOptions(opt =>
+    {
+        opt.DefaultPageSize = graphqlOptions.DefaultPageSize;
+        opt.MaxPageSize = graphqlOptions.MaxPageSize;
+        opt.IncludeTotalCount = graphqlOptions.IncludeTotalCount;
+    })
+    .ModifyRequestOptions(opt =>
+    {
+        opt.ExecutionTimeout = TimeSpan.FromSeconds(graphqlOptions.ExecutionTimeoutSeconds);
+        opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
+    })
+    .AddMaxExecutionDepthRule(graphqlOptions.MaxAllowedExecutionDepth, skipIntrospectionFields: true);
 
 builder.Services.AddSingleton<ILinkBuilder<CategoryResponse>, CategoryLinkBuilder>();
 builder.Services.AddSingleton<ILinkBuilder<ProductResponse>, ProductLinkBuilder>();
@@ -155,5 +182,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGraphQL("/graphql");
 
 await app.RunAsync();

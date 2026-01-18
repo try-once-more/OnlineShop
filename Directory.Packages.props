@@ -44,5 +44,9 @@
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0" />
+    <PackageVersion Include="HotChocolate.Types.Analyzers" Version="15.1.12" />
+    <PackageVersion Include="HotChocolate.AspNetCore" Version="15.1.12" />
+    <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="15.1.12" />
+    <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="15.1.12" />
   </ItemGroup>
 </Project>

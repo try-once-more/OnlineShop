@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option csharp_namespace = "CartService.Grpc.Contracts";
+
+package cartservice.v1;
+
+service CartService {
+  rpc GetItems (GetItemsRequest) returns (CartItemsResponse);
+  rpc GetItemsStream (GetItemsRequest) returns (stream CartItemMessage);
+  rpc AddItemsStream (stream AddItemRequest) returns (AddItemsStreamResponse);
+  rpc AddItemsBidirectional (stream AddItemRequest) returns (stream CartItemsResponse);
+}
+
+message GetItemsRequest {
+  string cart_id = 1;
+}
+
+message AddItemRequest {
+  string cart_id = 1;
+  CartItemMessage item = 2;
+}
+
+message CartItemsResponse {
+  string cart_id = 1;
+  repeated CartItemMessage items = 2;
+}
+
+message AddItemsStreamResponse {
+  repeated CartItemsResponse carts = 1;
+}
+
+message CartItemMessage {
+  int32 id = 1;
+  string name = 2;
+  DecimalValue price = 3;
+  int32 quantity = 4;
+  ImageInfoMessage image = 5;
+  CartItemStatus status = 6;
+}
+
+message DecimalValue {
+  int64 units = 1;
+  sfixed32 nanos = 2;
+}
+
+message ImageInfoMessage {
+  string url = 1;
+  string alt_text = 2;
+}
+
+enum CartItemStatus {
+  OUT_OF_STOCK = 0;
+  AVAILABLE = 1;
+  DISCONTINUED = 2;
+}

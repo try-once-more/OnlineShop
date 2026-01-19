@@ -133,15 +133,15 @@ builder.Services.AddGrpc(options =>
 
     if (grpcOptions.ResponseCompression != null)
     {
-        options.ResponseCompressionAlgorithm = grpcOptions.ResponseCompression.Algorithm;
-        options.ResponseCompressionLevel = grpcOptions.ResponseCompression.Level switch
+        if (!Enum.TryParse<System.IO.Compression.CompressionLevel>(
+            grpcOptions.ResponseCompression.Level,
+            ignoreCase: true,
+            out var level))
         {
-            "Optimal" => System.IO.Compression.CompressionLevel.Optimal,
-            "Fastest" => System.IO.Compression.CompressionLevel.Fastest,
-            "NoCompression" => System.IO.Compression.CompressionLevel.NoCompression,
-            "SmallestSize" => System.IO.Compression.CompressionLevel.SmallestSize,
-            _ => System.IO.Compression.CompressionLevel.Optimal
-        };
+            level = System.IO.Compression.CompressionLevel.Optimal;
+        }
+        options.ResponseCompressionLevel = level;
+        options.ResponseCompressionAlgorithm = grpcOptions.ResponseCompression.Algorithm;
     }
 });
 

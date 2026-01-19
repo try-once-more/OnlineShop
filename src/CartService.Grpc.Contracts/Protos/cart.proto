@@ -39,7 +39,11 @@ message CartItemMessage {
 }
 
 message DecimalValue {
+  // Whole part of the decimal value.
   int64 units = 1;
+
+  // Nano units of the decimal value (10^-9).
+  // Must be same sign as units.
   sfixed32 nanos = 2;
 }
 

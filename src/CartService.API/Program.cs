@@ -100,6 +100,7 @@ builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Ev
 builder.Services.Configure<CartSubscriberOptions>(builder.Configuration.GetSection("Eventing:CartService"));
 builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
 builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
+builder.Services.Configure<GrpcOptions>(builder.Configuration.GetSection("Grpc"));
 
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
@@ -113,12 +114,41 @@ builder.Services.AddEventing();
 builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
+
+var grpcOptions = builder.Configuration.GetSection("Grpc").Get<GrpcOptions>() ?? new();
 builder.Services.AddGrpc(options =>
 {
     options.Interceptors.Add<GrpcExceptionInterceptor>();
-    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.EnableDetailedErrors = grpcOptions.EnableDetailedErrors;
+
+    if (grpcOptions.MaxReceiveMessageSize.HasValue)
+    {
+        options.MaxReceiveMessageSize = grpcOptions.MaxReceiveMessageSize.Value;
+    }
+
+    if (grpcOptions.MaxSendMessageSize.HasValue)
+    {
+        options.MaxSendMessageSize = grpcOptions.MaxSendMessageSize.Value;
+    }
+
+    if (grpcOptions.ResponseCompression != null)
+    {
+        options.ResponseCompressionAlgorithm = grpcOptions.ResponseCompression.Algorithm;
+        options.ResponseCompressionLevel = grpcOptions.ResponseCompression.Level switch
+        {
+            "Optimal" => System.IO.Compression.CompressionLevel.Optimal,
+            "Fastest" => System.IO.Compression.CompressionLevel.Fastest,
+            "NoCompression" => System.IO.Compression.CompressionLevel.NoCompression,
+            "SmallestSize" => System.IO.Compression.CompressionLevel.SmallestSize,
+            _ => System.IO.Compression.CompressionLevel.Optimal
+        };
+    }
 });
-builder.Services.AddGrpcReflection();
+
+if (grpcOptions.EnableReflection)
+{
+    builder.Services.AddGrpcReflection();
+}
 
 var app = builder.Build();
 
@@ -156,6 +186,9 @@ app.UseHealthChecks("/health");
 app.MapCartEndpointsV1();
 app.MapCartEndpointsV2();
 app.MapGrpcService<CartGrpcService>();
-app.MapGrpcReflectionService();
+if (grpcOptions.EnableReflection)
+{
+    app.MapGrpcReflectionService();
+}
 
 await app.RunAsync();

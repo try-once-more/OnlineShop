@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
@@ -25,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CartService.Grpc.Contracts\CartService.Grpc.Contracts.csproj" />
     <ProjectReference Include="..\CartService\CartService.csproj" />
     <ProjectReference Include="..\Eventing.Infrastructure\Eventing.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared.Context\Shared.Context.csproj" />

@@ -2,6 +2,7 @@
 using CartService.API;
 using CartService.API.Configuration;
 using CartService.API.Endpoints;
+using CartService.API.Grpc;
 using CartService.API.Middlewares;
 using CartService.Application;
 using CartService.Infrastructure;
@@ -99,6 +100,7 @@ builder.Services.Configure<EventingOptions>(builder.Configuration.GetSection("Ev
 builder.Services.Configure<CartSubscriberOptions>(builder.Configuration.GetSection("Eventing:CartService"));
 builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("Authentication"));
 builder.Services.Configure<SwaggerOptions>(builder.Configuration.GetSection("Swagger"));
+builder.Services.Configure<GrpcOptions>(builder.Configuration.GetSection("Grpc"));
 
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddSingleton<IConfigureOptions<AuthorizationOptions>, ConfigureAuthorizationOptions>();
@@ -112,6 +114,41 @@ builder.Services.AddEventing();
 builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
+
+var grpcOptions = builder.Configuration.GetSection("Grpc").Get<GrpcOptions>() ?? new();
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcExceptionInterceptor>();
+    options.EnableDetailedErrors = grpcOptions.EnableDetailedErrors;
+
+    if (grpcOptions.MaxReceiveMessageSize.HasValue)
+    {
+        options.MaxReceiveMessageSize = grpcOptions.MaxReceiveMessageSize.Value;
+    }
+
+    if (grpcOptions.MaxSendMessageSize.HasValue)
+    {
+        options.MaxSendMessageSize = grpcOptions.MaxSendMessageSize.Value;
+    }
+
+    if (grpcOptions.ResponseCompression != null)
+    {
+        if (!Enum.TryParse<System.IO.Compression.CompressionLevel>(
+            grpcOptions.ResponseCompression.Level,
+            ignoreCase: true,
+            out var level))
+        {
+            level = System.IO.Compression.CompressionLevel.Optimal;
+        }
+        options.ResponseCompressionLevel = level;
+        options.ResponseCompressionAlgorithm = grpcOptions.ResponseCompression.Algorithm;
+    }
+});
+
+if (grpcOptions.EnableReflection)
+{
+    builder.Services.AddGrpcReflection();
+}
 
 var app = builder.Build();
 
@@ -148,5 +185,10 @@ if (app.Environment.IsDevelopment())
 app.UseHealthChecks("/health");
 app.MapCartEndpointsV1();
 app.MapCartEndpointsV2();
+app.MapGrpcService<CartGrpcService>();
+if (grpcOptions.EnableReflection)
+{
+    app.MapGrpcReflectionService();
+}
 
 await app.RunAsync();

@@ -11,6 +11,7 @@
   <Folder Name="/src/">
     <Project Path="src/APIGateway/APIGateway.csproj" />
     <Project Path="src/CartService.API/CartService.API.csproj" />
+    <Project Path="src/CartService.Grpc.Contracts/CartService.Grpc.Contracts.csproj" />
     <Project Path="src/CartService/CartService.csproj" />
     <Project Path="src/CatalogService.API/CatalogService.API.csproj" />
     <Project Path="src/CatalogService.Application/CatalogService.Application.csproj" />

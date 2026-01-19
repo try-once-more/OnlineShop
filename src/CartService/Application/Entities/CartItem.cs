@@ -4,9 +4,12 @@ public record class ImageInfo(Uri Url, string AltText = "");
 
 public enum CartItemStatus
 {
-    Discontinued = -1,
+    [Obsolete("Do not use. Will be removed in future. Use Discontinued = 2 instead.", true)]
+    Discontinued_Deprecated = -1,
+
     OutOfStock = 0,
-    Available = 1
+    Available = 1,
+    Discontinued = 2,
 }
 
 public class CartItem : BaseEntity<int>

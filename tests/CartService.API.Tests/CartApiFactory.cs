@@ -1,5 +1,6 @@
 ﻿using CartService.Application.Abstractions;
 using CartService.Application.Entities;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -9,11 +10,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
+using GrpcCartService = CartService.Grpc.Contracts.CartService;
 
 namespace CartService.API.Tests;
 
 public class CartApiFactory : WebApplicationFactory<Program>
 {
+    private GrpcChannel? channel;
     internal readonly Mock<ICartRepository> MockRepository = new();
 
     public CartApiFactory()
@@ -59,5 +62,29 @@ public class CartApiFactory : WebApplicationFactory<Program>
                 .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
                     TestAuthenticationHandler.TestScheme, options => { });
         });
+    }
+
+    public GrpcCartService.CartServiceClient CreateGrpcClient()
+    {
+        if (channel != null)
+            return new GrpcCartService.CartServiceClient(channel);
+
+        channel = GrpcChannel.ForAddress(Server.BaseAddress, new GrpcChannelOptions
+        {
+            HttpHandler = Server.CreateHandler()
+        });
+
+        return new GrpcCartService.CartServiceClient(channel);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        if (channel != null)
+        {
+            await channel.ShutdownAsync();
+            channel.Dispose();
+        }
+        await base.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 }

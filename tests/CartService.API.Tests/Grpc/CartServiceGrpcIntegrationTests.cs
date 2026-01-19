@@ -138,4 +138,38 @@ public class CartServiceGrpcIntegrationTests : IAsyncLifetime
         Assert.Single(responses[0].Items);
     }
 
+
+    [Fact]
+    public async Task GetItems_WhenInvalidCartId_ReturnsInvalidArgument()
+    {
+        var ex = await Assert.ThrowsAsync<RpcException>(async () =>
+            await client.GetItemsAsync(new GetItemsRequest { CartId = "invalid-guid" }));
+
+        Assert.Equal(StatusCode.InvalidArgument, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddItemsStream_WhenServiceThrows_ReturnsInvalidArgument()
+    {
+        var cartId = Guid.NewGuid();
+        var call = client.AddItemsStream();
+
+        await call.RequestStream.WriteAsync(new AddItemRequest
+        {
+            CartId = cartId.ToString(),
+            Item = new CartItemMessage
+            {
+                Id = 1,
+                Name = "Item",
+                Quantity = 1,
+                Price = new DecimalValue { Units = 0 }
+            }
+        });
+
+        await call.RequestStream.CompleteAsync();
+
+        var ex = await Assert.ThrowsAsync<RpcException>(async () => await call);
+
+        Assert.Equal(StatusCode.InvalidArgument, ex.StatusCode);
+    }
 }

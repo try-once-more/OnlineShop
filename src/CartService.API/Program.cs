@@ -113,7 +113,11 @@ builder.Services.AddEventing();
 builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<GrpcExceptionInterceptor>();
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
 builder.Services.AddGrpcReflection();
 
 var app = builder.Build();

@@ -103,7 +103,7 @@ public sealed class CartGrpcService(
     {
         if (!Guid.TryParse(cartId, out var result))
         {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid cart ID"));
+            throw new ArgumentException("Invalid cart ID");
         }
 
         return result;

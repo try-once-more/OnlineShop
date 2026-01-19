@@ -48,6 +48,8 @@
     <PackageVersion Include="HotChocolate.AspNetCore" Version="15.1.12" />
     <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="15.1.12" />
     <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="15.1.12" />
+    <PackageVersion Include="Grpc.AspNetCore" Version="2.76.0" />
+    <PackageVersion Include="Grpc.AspNetCore.Server.Reflection" Version="2.76.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.76.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.76.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.33.4" />

@@ -2,6 +2,7 @@
 using CartService.API;
 using CartService.API.Configuration;
 using CartService.API.Endpoints;
+using CartService.API.Grpc;
 using CartService.API.Middlewares;
 using CartService.Application;
 using CartService.Infrastructure;
@@ -112,6 +113,8 @@ builder.Services.AddEventing();
 builder.Services.AddContext();
 builder.Services.AddHostedService<EventProcessor>();
 builder.Services.AddMapper();
+builder.Services.AddGrpc();
+builder.Services.AddGrpcReflection();
 
 var app = builder.Build();
 
@@ -148,5 +151,7 @@ if (app.Environment.IsDevelopment())
 app.UseHealthChecks("/health");
 app.MapCartEndpointsV1();
 app.MapCartEndpointsV2();
+app.MapGrpcService<CartGrpcService>();
+app.MapGrpcReflectionService();
 
 await app.RunAsync();

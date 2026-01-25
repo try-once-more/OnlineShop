@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace CatalogService.API.Tests;
+namespace CatalogService.API.IntegrationTests;
 
 internal class TestAuthenticationHandler(
     IOptions<JwtAuthOptions> authOptions,

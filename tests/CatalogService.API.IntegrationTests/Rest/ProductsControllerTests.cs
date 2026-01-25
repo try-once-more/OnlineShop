@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using CatalogService.API.Products.Contracts;
 
-namespace CatalogService.API.Tests.Controllers;
+namespace CatalogService.API.IntegrationTests.Rest;
 
 [Collection(nameof(CatalogApiFactory))]
 public class ProductsControllerTests(CatalogApiFactory factory) : IClassFixture<CatalogApiFactory>, IAsyncLifetime

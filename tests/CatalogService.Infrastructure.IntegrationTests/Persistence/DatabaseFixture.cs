@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
 public class DatabaseFixture : IAsyncLifetime
 {

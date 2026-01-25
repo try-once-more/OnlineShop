@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CatalogService.API.Tests.GraphQL;
+namespace CatalogService.API.IntegrationTests.GraphQL;
 
 [Collection(nameof(CatalogApiFactory))]
 public class GraphQLTests(CatalogApiFactory factory) : IClassFixture<CatalogApiFactory>, IAsyncLifetime

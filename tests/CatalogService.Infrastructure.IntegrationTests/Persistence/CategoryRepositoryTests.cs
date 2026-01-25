@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
 [Collection(nameof(DatabaseFixture))]
 public class CategoryRepositoryTests(DatabaseFixture fixture)

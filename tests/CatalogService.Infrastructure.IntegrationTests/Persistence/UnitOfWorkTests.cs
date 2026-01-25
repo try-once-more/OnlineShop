@@ -3,7 +3,7 @@ using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
 [Collection(nameof(DatabaseFixture))]
 public class UnitOfWorkTests(DatabaseFixture fixture) : IClassFixture<DatabaseFixture>, IAsyncLifetime

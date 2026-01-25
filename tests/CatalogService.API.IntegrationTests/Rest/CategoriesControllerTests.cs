@@ -1,8 +1,9 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using CatalogService.API.Categories.Contracts;
+using CatalogService.API.IntegrationTests;
 
-namespace CatalogService.API.Tests.Controllers;
+namespace CatalogService.API.IntegrationTests.Rest;
 
 [Collection(nameof(CatalogApiFactory))]
 public class CategoriesControllerTests(CatalogApiFactory factory) : IClassFixture<CatalogApiFactory>, IAsyncLifetime

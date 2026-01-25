@@ -1,0 +1,33 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:10.0-alpine
+      options: --user root
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore dependencies
+        run: dotnet restore OnlineShop.slnx
+
+      - name: Build solution
+        run: dotnet build OnlineShop.slnx --no-restore --configuration Release
+
+      - name: Run tests
+        run: dotnet test OnlineShop.slnx --no-build --configuration Release --verbosity normal

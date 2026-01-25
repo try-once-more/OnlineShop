@@ -32,4 +32,4 @@ jobs:
         run: dotnet build OnlineShop.slnx --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test OnlineShop.slnx --filter FullyQualifiedName\!~IntegrationTests CartService.Grpc.Contracts.Tests--configuration Debug --verbosity normal || exit 1
+        run: dotnet test OnlineShop.slnx --filter FullyQualifiedName\!~IntegrationTests --configuration Debug --verbosity normal || exit 1

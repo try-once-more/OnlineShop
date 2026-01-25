@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using GrpcCartService = CartService.Grpc.Contracts.CartService;
 
-namespace CartService.API.Tests;
+namespace CartService.API.IntegrationTests;
 
 public class CartApiFactory : WebApplicationFactory<Program>
 {

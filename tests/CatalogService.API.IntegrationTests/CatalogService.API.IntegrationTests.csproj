@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Controllers\qhq0jss3.muk~" />
+    <None Remove="Rest\qhq0jss3.muk~" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.IntegrationTests.json">
+    <None Update="appsettings.IntegrationTests.json" Condition="Exists('appsettings.IntegrationTests.json')" >
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.json">

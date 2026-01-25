@@ -4,7 +4,7 @@ using CartService.API.CartEndpoints.Contracts;
 using CartService.Application.Entities;
 using Moq;
 
-namespace CartService.API.Tests.Endpoints;
+namespace CartService.API.IntegrationTests.Rest;
 
 [Collection(nameof(CartApiFactory))]
 public class CartEndpointsV1Tests : IAsyncLifetime

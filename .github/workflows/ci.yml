@@ -17,9 +17,11 @@ jobs:
     
     container:
       image: mcr.microsoft.com/dotnet/sdk:10.0-alpine
-      options: --user root
     
     steps:
+      - name: Install glibc compatibility
+        run: apk add --no-cache gcompat libc6-compat
+
       - name: Checkout code
         uses: actions/checkout@v4
 

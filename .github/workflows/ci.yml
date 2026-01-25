@@ -26,10 +26,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore dependencies
-        run: dotnet restore OnlineShop.slnx
+        run: dotnet restore OnlineShop.slnx -v:minimal
 
       - name: Build solution
-        run: dotnet build OnlineShop.slnx --no-restore --configuration Release
+        run: dotnet build OnlineShop.slnx --no-restore --configuration Release -v:minimal
 
       - name: Run tests
-        run: dotnet test OnlineShop.slnx --filter FullyQualifiedName\!~IntegrationTests --configuration Debug --verbosity normal || exit 1
+        run: dotnet test OnlineShop.slnx --filter FullyQualifiedName\!~IntegrationTests --configuration Debug -v:minimal || exit 1

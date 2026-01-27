@@ -33,8 +33,8 @@ public class DatabaseFixture : IAsyncLifetime
         {
             var options = ServiceProvider.GetRequiredService<IOptions<CatalogDatabaseOptions>>().Value;
 
-            Console.WriteLine("=== CatalogDatabaseOptions ===");
-            Console.WriteLine(options.CatalogDatabase);
+            System.Diagnostics.Debug.WriteLine("=== CatalogDatabaseOptions ===");
+            System.Diagnostics.Debug.WriteLine(options.CatalogDatabase);
             throw new InvalidOperationException("Failed to connect to the IntegrationTests database.");
         }
     }

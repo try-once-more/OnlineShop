@@ -52,6 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
+          path: .
       
       - name: Run unit tests
         run: dotnet test OnlineShop.slnx --configuration Release --no-build --filter "FullyQualifiedName!~IntegrationTests"

@@ -23,27 +23,13 @@
     <Project Path="src/Shared.Context/Shared.Context.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/CartService.API.IntegrationTests/CartService.API.IntegrationTests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CartService.Grpc.Contracts.Tests/CartService.Grpc.Contracts.Tests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CartService.Tests/CartService.Tests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CatalogService.API.IntegrationTests/CatalogService.API.IntegrationTests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CatalogService.Application.Tests/CatalogService.Application.Tests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CatalogService.Domain.Tests/CatalogService.Domain.Tests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
-    <Project Path="tests/CatalogService.Infrastructure.IntegrationTests/CatalogService.Infrastructure.IntegrationTests.csproj">
-      <Build Solution="Release|Any CPU" Project="false" />
-    </Project>
+    <Project Path="tests/CartService.API.IntegrationTests/CartService.API.IntegrationTests.csproj" />
+    <Project Path="tests/CartService.Grpc.Contracts.Tests/CartService.Grpc.Contracts.Tests.csproj" />
+    <Project Path="tests/CartService.Tests/CartService.Tests.csproj" />
+    <Project Path="tests/CatalogService.API.IntegrationTests/CatalogService.API.IntegrationTests.csproj" />
+    <Project Path="tests/CatalogService.Application.Tests/CatalogService.Application.Tests.csproj" />
+    <Project Path="tests/CatalogService.Domain.Tests/CatalogService.Domain.Tests.csproj" />
+    <Project Path="tests/CatalogService.Infrastructure.IntegrationTests/CatalogService.Infrastructure.IntegrationTests.csproj" />
   </Folder>
   <Project Path="containers/docker-compose.dcproj">
     <Platform Project="AnyCPU" />

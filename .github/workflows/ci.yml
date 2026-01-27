@@ -54,6 +54,7 @@ jobs:
     needs: build
     env:
       MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+      DB_NAME: CatalogServiceTests
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -63,8 +64,6 @@ jobs:
           MSSQL_PID: Developer
         ports:
           - 1433:1433
-        volumes:
-          - ./scripts:/scripts
         options: >-
           --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -C -Q 'SELECT 1'"
           --health-interval 10s
@@ -86,11 +85,11 @@ jobs:
       - name: Initialize database
         run: |
           CONTAINER_ID=$(docker ps --filter "ancestor=mcr.microsoft.com/mssql/server:2022-latest" --format "{{.ID}}")
-          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "CREATE DATABASE CatalogServiceTests"
-          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d CatalogServiceTests -i /scripts/migration.sql
+          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "CREATE DATABASE $DB_NAME"
+          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d $DB_NAME -Q "$(cat scripts/migration.sql)"
       
       - name: Run integration tests
         run: find tests -name "*.IntegrationTests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} + 
         env:
-          ConnectionStrings__CatalogDatabase: Server=localhost;Database=CatalogServiceTests;User Id=sa;Password=$MSSQL_SA_PASSWORD;TrustServerCertificate=True
+          ConnectionStrings__CatalogDatabase: Server=localhost;Database=$DB_NAME;User Id=sa;Password=$MSSQL_SA_PASSWORD;TrustServerCertificate=True
           ConnectionStrings__CartDatabase: CartService.db

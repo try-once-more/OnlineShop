@@ -32,8 +32,8 @@ jobs:
         with:
           name: build
           path: |
-            src/
-            tests/
+            ./src/**/bin/Release/**/
+            ./tests/**/bin/Release/**
 
   unit-tests:
     name: Unit Tests
@@ -54,12 +54,5 @@ jobs:
           name: build
           path: .
 
-      - name: Debug structure
-        run: |
-          ls -la
-          ls -la src/ || echo "No src"
-          ls -la tests/ || echo "No tests"
-          find . -name "*.dll" -type f | head -20
-
       - name: Run unit tests
-        run: dotnet test OnlineShop.slnx --configuration Release --no-build --filter "FullyQualifiedName!~IntegrationTests"
+        run: find tests -name "*.Tests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} +

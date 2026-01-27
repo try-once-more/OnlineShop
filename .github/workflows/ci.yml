@@ -52,7 +52,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-      
+
+      - name: List directory structure
+        run: |
+            echo "=== Current directory ==="
+            pwd
+            echo "=== Recursive listing ==="
+            ls -lR
+
       - name: Run unit tests
         run: |
             dotnet test OnlineShop.slnx --list-tests --no-build --filter "FullyQualifiedName!~IntegrationTests"

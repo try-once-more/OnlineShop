@@ -92,5 +92,5 @@ jobs:
       - name: Run integration tests
         run: find tests -name "*.IntegrationTests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} + 
         env:
-          ConnectionStrings__CatalogDatabase: Server=localhost,14330;Database=$DB_NAME;User Id=sa;Password=$MSSQL_SA_PASSWORD;Encrypt=False;TrustServerCertificate=True
+          ConnectionStrings__CatalogDatabase: Server=mssql,14330;Database=$DB_NAME;User Id=sa;Password=$MSSQL_SA_PASSWORD;Encrypt=False;TrustServerCertificate=True
           ConnectionStrings__CartDatabase: CartService.db

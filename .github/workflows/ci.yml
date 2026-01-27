@@ -44,16 +44,16 @@ jobs:
 
       - name: Initialize database
         run: |
-          for i in {1..30}; do
+          for i in {1..60}; do
             if /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P '$MSSQL_SA_PASSWORD' -C -Q 'SELECT 1' > /dev/null 2>&1; then
               echo "SQL Server ready"
               /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P '$MSSQL_SA_PASSWORD' -C -d model -i ./scripts/migration.sql
               exit 0
             fi
             echo "Waiting for SQL Server... ($i/30)"
-            sleep 2
+            sleep 10
           done
-          echo "SQL Server not ready after 60 seconds"
+          echo "SQL Server not ready after 600 seconds"
           exit 1
 
       - name: Run integration tests

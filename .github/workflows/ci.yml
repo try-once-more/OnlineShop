@@ -68,7 +68,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-          --health-start-period 300s
+          --health-start-period 120s
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -83,8 +83,8 @@ jobs:
       
       - name: Initialize database
         run: |
-          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "CREATE DATABASE CatalogServiceTests"
-          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d CatalogServiceTests -i ./scripts/migration.sql
+          docker exec mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "CREATE DATABASE CatalogServiceTests"
+          docker exec mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d CatalogServiceTests -i ./scripts/migration.sql
       
       - name: Run integration tests
         run: find tests -name "*.IntegrationTests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} + 

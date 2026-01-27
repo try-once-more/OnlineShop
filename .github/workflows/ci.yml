@@ -14,12 +14,33 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
-    
+
     container:
       image: mcr.microsoft.com/dotnet/sdk:10.0-alpine
-    
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2025-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+          MSSQL_PID: Developer
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${{ secrets.MSSQL_SA_PASSWORD }}' -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 30s
+
+      servicebus:
+        image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+          SQL_SERVER: mssql
+
     steps:
-      - name: Install glibc compatibility
+      - name: Install dependencies
         run: apk add --no-cache gcompat libc6-compat
 
       - name: Checkout code
@@ -31,5 +52,28 @@ jobs:
       - name: Build solution
         run: dotnet build OnlineShop.slnx --no-restore --configuration Release
 
-      - name: Run tests
-        run: dotnet test OnlineShop.slnx --no-build --configuration Release --filter FullyQualifiedName\!~IntegrationTests
+      - name: Run unit tests
+        run: dotnet test OnlineShop.slnx --no-build --configuration Release --filter "FullyQualifiedName!~IntegrationTests"
+
+      - name: Initialize database
+        run: |
+          for i in {1..30}; do
+            if /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P '${{ secrets.MSSQL_SA_PASSWORD }}' -C -Q 'SELECT 1' > /dev/null 2>&1; then
+              echo "SQL Server ready"
+              /opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P '${{ secrets.MSSQL_SA_PASSWORD }}' -C -d model -i ./scripts/migration.sql
+              exit 0
+            fi
+            echo "Waiting for SQL Server... ($i/30)"
+            sleep 2
+          done
+          echo "SQL Server not ready after 60 seconds"
+          exit 1
+
+      - name: Run integration tests
+        run: dotnet test OnlineShop.slnx --no-build --configuration Release --filter "FullyQualifiedName~IntegrationTests"
+        env:
+          ConnectionStrings__CatalogDatabase: Server=mssql;Database=CatalogServiceTests;User Id=sa;Password=${{ secrets.MSSQL_SA_PASSWORD }};TrustServerCertificate=True
+          ConnectionStrings__CartDatabase: CartService.db
+          Eventing__FullyQualifiedNamespace: servicebus
+          Eventing__CartService__TopicName: catalog
+          Eventing__CartService__SubscriptionName: catalog

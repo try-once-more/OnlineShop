@@ -57,6 +57,4 @@ jobs:
           path: .
 
       - name: Run unit tests
-        run: |
-            dotnet test OnlineShop.slnx --list-tests --no-build --filter "FullyQualifiedName!~IntegrationTests"
-            dotnet test OnlineShop.slnx --configuration Release --no-build --filter "FullyQualifiedName!~IntegrationTests"
+        run: dotnet test OnlineShop.slnx --configuration Release --no-build --filter "FullyQualifiedName!~IntegrationTests" --verbosity normal

@@ -47,11 +47,14 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-output
+
+      - name: Restore dependencies
+        run: dotnet restore OnlineShop.slnx
 
       - name: List directory structure
         run: |

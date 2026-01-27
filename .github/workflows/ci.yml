@@ -32,13 +32,6 @@ jobs:
           --health-retries 10
           --health-start-period 30s
 
-      servicebus:
-        image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
-        env:
-          ACCEPT_EULA: Y
-          MSSQL_SA_PASSWORD: $MSSQL_SA_PASSWORD
-          SQL_SERVER: mssql
-
     steps:
       - name: Install dependencies
         run: apk add --no-cache gcompat libc6-compat
@@ -74,6 +67,3 @@ jobs:
         env:
           ConnectionStrings__CatalogDatabase: Server=mssql;Database=CatalogServiceTests;User Id=sa;Password=$MSSQL_SA_PASSWORD;TrustServerCertificate=True
           ConnectionStrings__CartDatabase: CartService.db
-          Eventing__FullyQualifiedNamespace: servicebus
-          Eventing__CartService__TopicName: catalog
-          Eventing__CartService__SubscriptionName: catalog

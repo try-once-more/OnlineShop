@@ -54,7 +54,9 @@ jobs:
           name: build-output
       
       - name: Run unit tests
-        run: dotnet test OnlineShop.slnx --configuration Release --filter "FullyQualifiedName!~IntegrationTests" --no-build --logger "console;verbosity=minimal"
+        run: |
+            dotnet test OnlineShop.slnx --list-tests --no-build --filter "FullyQualifiedName!~IntegrationTests"
+            dotnet test OnlineShop.slnx --configuration Release --no-build --filter "FullyQualifiedName!~IntegrationTests"
 
   integration-tests:
     name: Integration Tests

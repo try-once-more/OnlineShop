@@ -65,7 +65,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -C -Q 'SELECT 1'"
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${{ secrets.MSSQL_SA_PASSWORD }} -C -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
@@ -86,8 +86,8 @@ jobs:
         run: |
           CONTAINER_ID=$(docker ps --filter "ancestor=mcr.microsoft.com/mssql/server:2022-latest" --format "{{.ID}}")
           docker cp ./scripts/migration.sql $CONTAINER_ID:/migration.sql
-          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "CREATE DATABASE [$DB_NAME]"
-          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d "$DB_NAME" -i /migration.sql
+          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" -C -Q "CREATE DATABASE [$DB_NAME]"
+          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" -C -d "$DB_NAME" -i /migration.sql
       
       - name: Run integration tests
         run: find tests -name "*.IntegrationTests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} + 

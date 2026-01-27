@@ -32,8 +32,8 @@ jobs:
         with:
           name: build-output
           path: |
-            **/bin/Release/
-            **/obj/Release/
+            src/**/bin/Release/net10.0/
+            tests/**/bin/Release/net10.0/
 
   unit-tests:
     name: Unit Tests

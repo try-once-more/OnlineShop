@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
@@ -30,6 +31,10 @@ public class DatabaseFixture : IAsyncLifetime
         var context = ServiceProvider.GetRequiredService<DbContext>();
         if (!await context.Database.CanConnectAsync())
         {
+            var options = ServiceProvider.GetRequiredService<IOptions<CatalogDatabaseOptions>>().Value;
+
+            Console.WriteLine("=== CatalogDatabaseOptions ===");
+            Console.WriteLine(options.CatalogDatabase);
             throw new InvalidOperationException("Failed to connect to the IntegrationTests database.");
         }
     }

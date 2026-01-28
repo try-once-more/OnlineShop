@@ -17,14 +17,6 @@ jobs:
         with:
          dotnet-version: 10.0.x
       
-      - name: Cache NuGet packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-      
       - name: Run unit tests
         run: dotnet test OnlineShop.slnx --configuration Release --filter FullyQualifiedName!~IntegrationTests
 
@@ -54,14 +46,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
          dotnet-version: 10.0.x
-      
-      - name: Cache NuGet packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
       
       - name: Initialize database
         run: |

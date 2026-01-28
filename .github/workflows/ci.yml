@@ -1,9 +1,10 @@
 name: CI Pipeline
+
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -11,23 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: 10.0.x
-      
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
       - name: Restore dependencies
         run: dotnet restore OnlineShop.slnx
-      
+
       - name: Build solution
         run: dotnet build OnlineShop.slnx --no-restore --configuration Release
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            ./src/**/bin/Release/**/
-            ./tests/**/bin/Release/**/
 
   unit-tests:
     name: Unit Tests
@@ -35,18 +37,27 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: 10.0.x
-      
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
         with:
-          name: build
-          path: .
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore OnlineShop.slnx
+
+      - name: Build (incremental)
+        run: dotnet build OnlineShop.slnx --no-restore --configuration Release
 
       - name: Run unit tests
-        run: find tests -name "*.Tests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} +
+        run: dotnet test OnlineShop.slnx --no-build --configuration Release --filter FullyQualifiedName!~IntegrationTests
 
   integration-tests:
     name: Integration Tests
@@ -71,25 +82,34 @@ jobs:
           --health-start-period 60s
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
-         dotnet-version: 10.0.x
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
         with:
-          name: build
-          path: .
-      
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore OnlineShop.slnx
+
+      - name: Build (incremental)
+        run: dotnet build OnlineShop.slnx --no-restore --configuration Release
+
       - name: Initialize database
         run: |
           CONTAINER_ID=$(docker ps --filter "ancestor=mcr.microsoft.com/mssql/server:2025-latest" --format "{{.ID}}")
           docker cp ./scripts/migration.sql $CONTAINER_ID:/migration.sql
           docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" -C -Q "CREATE DATABASE [$DB_NAME]"
           docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${{ secrets.MSSQL_SA_PASSWORD }}" -C -d "$DB_NAME" -i /migration.sql
-      
+
       - name: Run integration tests
-        run: find tests -name "*.IntegrationTests.dll" -path "*/bin/Release/*" -exec dotnet vstest {} + 
         env:
           ConnectionStrings__CatalogDatabase: "Server=.;Database=${{ env.DB_NAME }};User Id=sa;Password=${{ secrets.MSSQL_SA_PASSWORD }};Encrypt=False;TrustServerCertificate=True"
           ConnectionStrings__CartDatabase: CartService.db
+        run: dotnet test OnlineShop.slnx --no-build --configuration Release --filter FullyQualifiedName~IntegrationTests

@@ -43,7 +43,9 @@ public class DatabaseFixture : IAsyncLifetime
         schema = string.IsNullOrWhiteSpace(schema)
             ? string.Empty
             : $"[{schema}].";
-        await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}[Products]");
+        
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Products]");
         await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Categories]");
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Events]");
     }
 }

@@ -8,7 +8,6 @@ on:
       - main
       - 'feature/**'
       - 'hotfix/**'
-      - 'bugfix/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,11 +23,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
          dotnet-version: 10.0.x
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}
 
       - name: Restore dependencies
         run: dotnet restore OnlineShop.slnx
@@ -65,11 +59,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
          dotnet-version: 10.0.x
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}
       
       - name: Initialize database
         run: |

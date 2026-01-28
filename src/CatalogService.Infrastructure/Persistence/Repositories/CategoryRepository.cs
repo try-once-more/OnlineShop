@@ -61,10 +61,7 @@ internal class CategoryRepository(CatalogDbContext context)
     public async override Task AddAsync(Category entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        if (entity.ParentCategory?.Id > 0)
-        {
-            DbSet.Attach(entity.ParentCategory);
-        }
+        TryAttachCategory(entity.ParentCategory);
         await DbSet.AddAsync(entity, cancellationToken);
         await Context.SaveChangesAsync(cancellationToken);
     }
@@ -74,10 +71,7 @@ internal class CategoryRepository(CatalogDbContext context)
         ArgumentNullException.ThrowIfNull(entities, nameof(entities));
         var items = entities.Select(entity =>
         {
-            if (entity.ParentCategory?.Id > 0)
-            {
-                DbSet.Attach(entity.ParentCategory);
-            }
+            TryAttachCategory(entity.ParentCategory);
             return entity;
         });
         await DbSet.AddRangeAsync(items, cancellationToken);
@@ -87,10 +81,7 @@ internal class CategoryRepository(CatalogDbContext context)
     public async override Task UpdateAsync(Category entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        if (entity.ParentCategory?.Id > 0)
-        {
-            DbSet.Attach(entity.ParentCategory);
-        }
+        TryAttachCategory(entity.ParentCategory);
         DbSet.Update(entity);
         await Context.SaveChangesAsync(cancellationToken);
     }
@@ -101,10 +92,7 @@ internal class CategoryRepository(CatalogDbContext context)
 
         var items = entities.Select(entity =>
         {
-            if (entity.ParentCategory?.Id > 0)
-            {
-                DbSet.Attach(entity.ParentCategory);
-            }
+            TryAttachCategory(entity.ParentCategory);
             return entity;
         });
 
@@ -113,4 +101,16 @@ internal class CategoryRepository(CatalogDbContext context)
     }
 
     IQueryable<Category> IQueryableRepository<Category>.AsQueryable() => DbSet.AsNoTracking();
+
+    private void TryAttachCategory(Category? category)
+    {
+        if (category?.Id > 0)
+        {
+            var entry = Context.Entry(category);
+            if (entry.State == EntityState.Detached)
+            {
+                Context.Attach(category);
+            }
+        }
+    }
 }

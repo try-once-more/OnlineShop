@@ -8,15 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.IntegrationTests.json">
+    <None Include="appsettings.IntegrationTests.json" Condition="Exists('appsettings.IntegrationTests.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    </None>
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
@@ -26,7 +22,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 

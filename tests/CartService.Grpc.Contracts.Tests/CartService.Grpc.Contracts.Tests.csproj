@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\CartService.Grpc.Contracts\CartService.Grpc.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CatalogService.Domain\CatalogService.Domain.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

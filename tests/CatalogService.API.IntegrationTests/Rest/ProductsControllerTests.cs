@@ -2,16 +2,20 @@
 using System.Net.Http.Json;
 using CatalogService.API.Products.Contracts;
 
-namespace CatalogService.API.Tests.Controllers;
+namespace CatalogService.API.IntegrationTests.Rest;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(CatalogApiFactory))]
 public class ProductsControllerTests(CatalogApiFactory factory) : IClassFixture<CatalogApiFactory>, IAsyncLifetime
 {
     private readonly HttpClient _client = factory.CreateClient();
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public Task DisposeAsync() => factory.ResetDatabaseAsync();
+    public async ValueTask DisposeAsync()
+    {
+        await factory.ResetDatabaseAsync();
+    }
 
     [Fact]
     public async Task GetProducts_ShouldReturnEmptyList_WhenNoProductsExist()

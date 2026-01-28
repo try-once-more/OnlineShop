@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
 public class DatabaseFixture : IAsyncLifetime
 {
@@ -25,7 +25,7 @@ public class DatabaseFixture : IAsyncLifetime
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         var context = ServiceProvider.GetRequiredService<DbContext>();
         if (!await context.Database.CanConnectAsync())
@@ -34,16 +34,18 @@ public class DatabaseFixture : IAsyncLifetime
         }
     }
 
-    public Task DisposeAsync() => ServiceProvider.DisposeAsync().AsTask();
+    public ValueTask DisposeAsync() => ServiceProvider.DisposeAsync();
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection.", Justification = "Database reset only")]
-    internal static async Task ResetDatabaseAsync(DbContext context)
+    internal static async ValueTask ResetDatabaseAsync(DbContext context)
     {
         var schema = context.Model.GetDefaultSchema();
         schema = string.IsNullOrWhiteSpace(schema)
             ? string.Empty
             : $"[{schema}].";
-        await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}[Products]");
+
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Products]");
         await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Categories]");
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Events]");
     }
 }

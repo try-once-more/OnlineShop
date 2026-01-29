@@ -4,23 +4,24 @@ using CartService.API.CartEndpoints.Contracts;
 using CartService.Application.Entities;
 using Moq;
 
-namespace CartService.API.Tests.Endpoints;
+namespace CartService.API.IntegrationTests.Rest;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(CartApiFactory))]
 public class CartEndpointsV2Tests : IAsyncLifetime
 {
     private readonly CartApiFactory Factory = new();
     private HttpClient client;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         client = Factory.CreateClient();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        await Factory.DisposeAsync();
+        return Factory.DisposeAsync();
     }
 
     [Fact]

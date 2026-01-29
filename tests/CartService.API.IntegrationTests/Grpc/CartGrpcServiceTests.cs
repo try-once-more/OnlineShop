@@ -4,21 +4,22 @@ using Grpc.Core;
 using Moq;
 using GrpcCartService = CartService.Grpc.Contracts.CartService;
 
-namespace CartService.API.Tests.Grpc;
+namespace CartService.API.IntegrationTests.Grpc;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(CartApiFactory))]
-public class CartServiceGrpcIntegrationTests : IAsyncLifetime
+public class CartGrpcServiceTests : IAsyncLifetime
 {
     private readonly CartApiFactory Factory = new();
     private GrpcCartService.CartServiceClient client;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         client = Factory.CreateGrpcClient();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await Factory.DisposeAsync();
     }

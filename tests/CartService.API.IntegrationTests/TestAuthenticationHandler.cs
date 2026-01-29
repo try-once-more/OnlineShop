@@ -1,12 +1,12 @@
 ﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
-using CatalogService.API.Configuration;
+using CartService.API.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace CatalogService.API.Tests;
+namespace CartService.API.IntegrationTests;
 
 internal class TestAuthenticationHandler(
     IOptions<JwtAuthOptions> authOptions,

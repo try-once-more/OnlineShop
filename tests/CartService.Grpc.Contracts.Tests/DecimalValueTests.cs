@@ -1,6 +1,4 @@
-﻿using CartService.Grpc.Contracts;
-
-namespace CartService.API.Tests.Grpc;
+﻿namespace CartService.Grpc.Contracts.Tests;
 
 public class DecimalValueTests
 {

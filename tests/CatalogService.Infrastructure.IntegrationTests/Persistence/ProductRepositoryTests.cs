@@ -3,8 +3,9 @@ using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(DatabaseFixture))]
 public class ProductRepositoryTests(DatabaseFixture fixture)
     : IClassFixture<DatabaseFixture>, IAsyncLifetime
@@ -13,14 +14,14 @@ public class ProductRepositoryTests(DatabaseFixture fixture)
     private ICategoryRepository categoryRepository;
     private IProductRepository productRepository;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         categoryRepository = scope.ServiceProvider.GetRequiredService<ICategoryRepository>();
         productRepository = scope.ServiceProvider.GetRequiredService<IProductRepository>();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         using (scope)
         {

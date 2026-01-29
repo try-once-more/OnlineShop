@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace CatalogService.API.Tests;
+namespace CatalogService.API.IntegrationTests;
 
 public class CatalogApiFactory : WebApplicationFactory<Program>
 {
@@ -41,7 +41,7 @@ public class CatalogApiFactory : WebApplicationFactory<Program>
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection.", Justification = "Database reset only")]
-    internal async Task ResetDatabaseAsync()
+    internal async ValueTask ResetDatabaseAsync()
     {
         var context = Services.GetRequiredService<DbContext>();
 
@@ -49,7 +49,8 @@ public class CatalogApiFactory : WebApplicationFactory<Program>
         schema = string.IsNullOrWhiteSpace(schema)
             ? string.Empty
             : $"[{schema}].";
-        await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}[Products]");
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Products]");
         await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Categories]");
+        await context.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}[Events]");
     }
 }

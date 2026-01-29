@@ -3,17 +3,21 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CatalogService.API.Tests.GraphQL;
+namespace CatalogService.API.IntegrationTests.GraphQL;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(CatalogApiFactory))]
 public class GraphQLTests(CatalogApiFactory factory) : IClassFixture<CatalogApiFactory>, IAsyncLifetime
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly HttpClient _client = factory.CreateClient();
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public Task DisposeAsync() => factory.ResetDatabaseAsync();
+    public async ValueTask DisposeAsync()
+    {
+        await factory.ResetDatabaseAsync();
+    }
 
     [Fact]
     public async Task GraphQL_SimpleQuery_ReturnsSuccess()

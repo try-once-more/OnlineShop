@@ -20,9 +20,9 @@ public class LiteCartRepositoryFixture : IAsyncLifetime
             .BuildServiceProvider();
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await ServiceProvider.DisposeAsync();
 
@@ -38,17 +38,17 @@ public class LiteCartRepositoryTests(LiteCartRepositoryFixture fixture)
     private readonly IServiceScope scope = fixture.ServiceProvider.CreateScope();
     private ICartRepository categoryRepository;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         categoryRepository = scope.ServiceProvider.GetRequiredService<ICartRepository>();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         var db = scope.ServiceProvider.GetRequiredService<ILiteDatabase>();
         db.GetCollection<Cart>("carts").DeleteAll();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]

@@ -3,21 +3,22 @@ using CatalogService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CatalogService.Infrastructure.Tests.Persistence;
+namespace CatalogService.Infrastructure.IntegrationTests.Persistence;
 
+[Trait("Category", "IntegrationTests")]
 [Collection(nameof(DatabaseFixture))]
 public class UnitOfWorkTests(DatabaseFixture fixture) : IClassFixture<DatabaseFixture>, IAsyncLifetime
 {
     private readonly IServiceScope scope = fixture.ServiceProvider.CreateScope();
     private IUnitOfWork unitOfWork;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         using (scope)
         {
